@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>英文聽寫練習機 (平板優化 V3.0.7)</title>
+    <title>英文聽寫練習機 (平板優化 V3.0.8)</title>
     <style>
         /* ------------------- CSS 樣式 ------------------- */
         body {
@@ -233,7 +233,7 @@
 <body>
 
     <div id="game-container">
-        <h2>☁️ 英文聽寫練習機 V3.0.7</h2>
+        <h2>☁️ 英文聽寫練習機 V3.0.8</h2>
         
         <div id="review-status"></div>
 
@@ -717,7 +717,7 @@
             
             const wordData = currentWordList[wordIndex];
             currentWord = wordData.word;
-            currentSpelling = [];
+            currentSpelling = []; // 清空拼寫狀態
             
             inputArea.innerHTML = '';
             feedbackMessage.textContent = '';
@@ -865,6 +865,8 @@
                 const lastSlot = document.getElementById(`slot-${lastSlotIndex}`);
                 if (lastSlot) {
                     lastSlot.textContent = ''; 
+                    // V3.0.8 修正：刪除時移除顏色標記
+                    lastSlot.classList.remove('correct', 'incorrect', 'skipped'); 
                 }
                 
                 currentSpelling.pop(); 
@@ -876,13 +878,13 @@
         }
 
         /**
-         * 檢查拼寫 (V3.0.5/V3.0.7 修正)
+         * 檢查拼寫 (V3.0.8: 保留錯誤字並標色，等待手動重試)
          */
         function checkSpelling() {
             checkBtn.disabled = true;
             repeatBtn.disabled = true;
             answerBtn.disabled = true; 
-            startBtn.disabled = true; // 檢查期間鎖定跳過按鈕
+            startBtn.disabled = true; 
 
             const playerWord = currentSpelling.join('');
             const pureWord = currentWord.replace(/\s/g, ''); 
@@ -891,14 +893,12 @@
                 // ✅ 答對流程：自動跳轉至下一題
                 feedbackMessage.textContent = '🍭 太棒了！拼寫完全正確！'; 
                 
-                // 唸正確答案
                 const utterThis = speak('Excellent! The word is ' + currentWord, 1.0, 1.0);
                 
                 for (let i = 0; i < pureWord.length; i++) {
                     document.getElementById(`slot-${i}`).classList.add('correct');
                 }
 
-                // V3.0.5 修正：答對後等待 1.5 秒，自動跳轉下一題
                 utterThis.onend = () => {
                     setTimeout(() => {
                         wordIndex++; 
@@ -907,15 +907,21 @@
                 };
                 
             } else {
-                // ❌ 答錯流程：手動跳轉
-                feedbackMessage.textContent = '💡 錯囉！即將重唸，請再試一次！';
+                // ❌ 答錯流程：保留文字並標色
+                feedbackMessage.textContent = '💡 錯囉！請檢查紅色錯誤，點擊「重複唸一次」或「下一個單字」。';
                 
                 for (let i = 0; i < pureWord.length; i++) {
                     const slot = document.getElementById(`slot-${i}`);
+                    // 答錯時，將輸入的字母顯示出來，並根據對錯標色
+                    if (slot && currentSpelling[i]) {
+                         slot.textContent = currentSpelling[i]; 
+                    }
                     if (currentSpelling[i] && currentSpelling[i] === pureWord[i]) {
                         slot.classList.add('correct');
+                        slot.classList.remove('incorrect');
                     } else {
                         slot.classList.add('incorrect');
+                        slot.classList.remove('correct');
                     }
                 }
                 
@@ -925,10 +931,11 @@
                     errorList.push(currentWordData);
                 }
                 
-                resetForRetry(); 
-                answerBtn.disabled = false; // 答錯後仍可看答案
+                // V3.0.8 關鍵修正：重置狀態，但不清空輸入格子
+                resetForRetryState(); 
+                answerBtn.disabled = false; 
 
-                // 答錯後啟用手動跳轉按鈕
+                // 啟用手動跳轉按鈕，讓使用者決定下一步
                 startBtn.textContent = '下一個單字';
                 startBtn.disabled = false; 
                 
@@ -937,12 +944,52 @@
             }
         }
         
-        function resetForRetry() {
-            feedbackMessage.textContent = '請再試一次！點擊字母重新輸入。';
-            currentSpelling = [];
+        /**
+         * V3.0.8 修正：只重置狀態，不清除文字內容
+         */
+        function resetForRetryState() {
+            // 清除當前的拼寫狀態，等待下一次輸入
+            currentSpelling = []; 
+            checkBtn.disabled = true;
+            repeatBtn.disabled = false;
+            // 不清除文字內容 (slot.textContent)，只清除顏色，讓使用者在點擊字母或 DEL 時再修改
             
+            // 由於用戶要求保留錯誤時的文字，當他們點擊鍵盤時，
+            // 我們需要清除顏色，然後讓新的輸入覆蓋上去。
+            // 這裡可以選擇不清除顏色，讓紅綠提示一直保留直到下一題或手動清除。
+            // 為了讓使用者能夠重新嘗試，我們提供一個清除當前所有輸入並重試的機制
+            
+            // *** 新增「清除重試」按鈕的功能 (暫時使用 checkBtn 的點擊事件) ***
+            // 由於沒有新的按鈕，我們先讓使用者用 Delete 鍵清除。
+            // 如果要重新嘗試，使用者必須手動清除錯誤的字母。
+
+            // 這裡我們只清除 currentSpelling 陣列，讓後續的 handleKeyClick 從頭開始寫入。
+            // 為了讓使用者能夠看到提示後重試，我們新增一個功能按鈕
+            
+             // 為了方便，我們提供一個「重新輸入」的選項
+            const oldStartText = startBtn.textContent;
+            startBtn.textContent = '重新輸入/下一個';
+            startBtn.onclick = function() {
+                 if(startBtn.textContent === '重新輸入/下一個') {
+                    // 執行清除所有文字和顏色，並重新開始
+                    resetFullInput(); 
+                 } else {
+                    handleStartNext(); // 下一個單字
+                 }
+            }
+            
+             // 為了不影響原有流程，我們新增一個隱藏的「清除重試」功能
+             // 讓使用者點擊 checkBtn 時，如果顯示的是「重試」，則執行清除。
+             checkBtn.textContent = '🔄 重試';
+             checkBtn.disabled = false;
+             checkBtn.onclick = resetFullInput;
+        }
+
+        /**
+         * V3.0.8 新增：清除所有輸入，準備重試
+         */
+         function resetFullInput() {
             const pureWord = currentWord.replace(/\s/g, '');
-            
             for (let i = 0; i < pureWord.length; i++) {
                 const slot = document.getElementById(`slot-${i}`);
                 if (slot) {
@@ -950,11 +997,20 @@
                     slot.classList.remove('correct', 'incorrect', 'skipped');
                 }
             }
-            repeatBtn.disabled = false;
-        }
+            currentSpelling = [];
+            checkBtn.textContent = '✅ 檢查拼寫';
+            checkBtn.disabled = true;
+            checkBtn.onclick = checkSpelling; // 恢復檢查功能
+            
+            // 恢復開始按鈕為「下一個單字/跳過」
+            startBtn.textContent = '下一個單字/跳過';
+            startBtn.onclick = handleStartNext; // 恢復開始/下一題功能
+            
+            feedbackMessage.textContent = '請點擊「重複唸一次」後開始重新拼寫。';
+         }
 
         /**
-         * 顯示答案 (V3.0.5/V3.0.7 修正)
+         * 顯示答案 (V3.0.8 修正：看答案後啟用手動跳轉按鈕)
          */
         function showAnswer() {
             checkBtn.disabled = true;
@@ -975,7 +1031,6 @@
             
             feedbackMessage.textContent = `答案是 ${word}。已加入待複習清單！`;
             
-            // 語音報讀答案
             const utterThis = speak(`The correct word is ${word}`);
 
             // 將看答案的單字加入複習清單
@@ -984,7 +1039,7 @@
                  errorList.push(currentWordData);
             }
 
-            // V3.0.5 修正：看答案後等待 1.5 秒，啟用手動跳轉按鈕
+            // 看答案後等待 1.5 秒，啟用手動跳轉按鈕
             utterThis.onend = () => {
                 setTimeout(() => {
                     feedbackMessage.textContent += ' (請點擊「下一個單字」繼續)';
@@ -1024,7 +1079,7 @@
         };
         
         repeatBtn.onclick = () => readWord(currentWord); 
-        checkBtn.onclick = checkSpelling;
+        checkBtn.onclick = checkSpelling; // 預設是檢查
         
     </script>
 
