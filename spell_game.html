@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>英文聽寫練習機 (平板優化 V3.0.5)</title>
+    <title>英文聽寫練習機 (平板優化 V3.0.6)</title>
     <style>
         /* ------------------- CSS 樣式 ------------------- */
         body {
@@ -236,7 +236,7 @@
 <body>
 
     <div id="game-container">
-        <h2>☁️ 英文聽寫練習機 V3.0.5</h2>
+        <h2>☁️ 英文聽寫練習機 V3.0.6</h2>
         
         <div id="review-status"></div>
 
@@ -270,7 +270,7 @@
     <script>
         // ------------------- JavaScript 邏輯 -------------------
 
-        // 1. 單字庫
+        // 1. 單字庫 (G1 保持不變; G2 根據圖片內容完全更新)
         const allWordUnits = {
             "G1": {
                 "U1": [
@@ -397,12 +397,149 @@
                 ]
             },
             "G2": {
-                // G2 單字庫保持不變
-                "U1": [{ word: "ARM", hint: "手臂" }, { word: "BACK", hint: "背部" }, { word: "BODY", hint: "身體" }, { word: "FEET", hint: "腳 (複數)" }, { word: "FINGER", hint: "手指" }, { word: "FOOT", hint: "腳 (單數)" }, { word: "HAND", hint: "手" }, { word: "HAS", hint: "有 (單數第三人稱)" }, { word: "HAVE", hint: "有 (動詞)" }, { word: "LEG", hint: "腿" }, { word: "THUMB", hint: "拇指" }, { word: "TOE", hint: "腳趾" }],
-                "U2": [{ word: "BIG", hint: "大的" }, { word: "EAR", hint: "耳朵" }, { word: "EYE", hint: "眼睛" }, { word: "HAIR", hint: "頭髮" }, { word: "LITTLE", hint: "小的" }, { word: "LONG", hint: "長的" }, { word: "MOUTH", hint: "嘴巴" }, { word: "NOSE", hint: "鼻子" }, { word: "NOW", hint: "現在" }, { word: "SHORT", hint: "短的/矮的" }],
-                "U3": [{ word: "COAT", hint: "外套" }, { word: "DRESS", hint: "洋裝" }, { word: "GLASSES", hint: "眼鏡" }, { word: "PANTS", hint: "褲子" }, { word: "SHIRT", hint: "襯衫" }, { word: "SHOES", hint: "鞋子" }, { word: "SHORTS", hint: "短褲" }, { word: "SKIRT", hint: "裙子" }, { word: "SOCKS", hint: "襪子" }, { word: "SWEATER", hint: "毛衣" }],
-                "U4": [{ word: "TIRED", hint: "累的" }, { word: "HAPPY", hint: "快樂的" }, { word: "SAD", hint: "悲傷的" }, { word: "BORED", hint: "無聊的" }, { word: "ANGRY", hint: "生氣的" }, { word: "CRAZY", hint: "瘋狂的" }, { word: "HUNGRY", hint: "飢餓的" }, { word: "THIRSTY", hint: "口渴的" }, { word: "SICK", hint: "生病的" }, { word: "SCARED", hint: "害怕的" }],
-                "U5": [{ word: "MONTH", hint: "月份" }, { word: "JANUARY", hint: "一月" }, { word: "FEBRUARY", hint: "二月" }, { word: "MARCH", hint: "三月" }, { word: "APRIL", hint: "四月" }, { word: "MAY", hint: "五月" }, { word: "JUNE", hint: "六月" }, { word: "JULY", hint: "七月" }, { word: "AUGUST", hint: "八月" }, { word: "SEPTEMBER", hint: "九月" }, { word: "OCTOBER", hint: "十月" }, { word: "NOVEMBER", hint: "十一月" }, { word: "DECEMBER", hint: "十二月" }]
+                // G2 單字庫：根據圖片內容完全更新
+                "U1": [
+                    { word: "FINGER", hint: "手指頭" }, 
+                    { word: "THUMB", hint: "大拇指" }, 
+                    { word: "BODY", hint: "身體" }, 
+                    { word: "FOOT/FEET", hint: "腳 (單數/複數)" }, 
+                    { word: "TOE", hint: "腳趾" },
+                    { word: "LEG", hint: "腿" },
+                    { word: "BACK", hint: "背" },
+                    { word: "ARM", hint: "手臂" },
+                    { word: "HAND", hint: "手" },
+                    { word: "HAVE/HAS", hint: "有" }
+                ],
+                "U2": [
+                    { word: "EYE", hint: "眼睛" }, 
+                    { word: "EAR", hint: "耳朵" }, 
+                    { word: "HAIR", hint: "頭髮" }, 
+                    { word: "MOUTH", hint: "嘴巴" }, 
+                    { word: "NOSE", hint: "鼻子" },
+                    { word: "BIG", hint: "大的" },
+                    { word: "LITTLE", hint: "小的" },
+                    { word: "SHORT", hint: "短的" },
+                    { word: "LONG", hint: "長的" },
+                    { word: "NOW", hint: "現在" }
+                ],
+                "U3": [
+                    { word: "COAT", hint: "外套" }, 
+                    { word: "SHIRT", hint: "襯衫" }, 
+                    { word: "PANTS", hint: "褲子" }, 
+                    { word: "SHORTS", hint: "短褲" }, 
+                    { word: "SKIRT", hint: "裙子" },
+                    { word: "SOCKS", hint: "襪子" },
+                    { word: "SHOES", hint: "鞋子" },
+                    { word: "DRESS", hint: "洋裝" },
+                    { word: "SWEATER", hint: "毛衣" },
+                    { word: "GLASSES", hint: "眼鏡" }
+                ],
+                "U4": [
+                    { word: "TIRED", hint: "疲倦的" }, 
+                    { word: "HAPPY", hint: "快樂的" }, 
+                    { word: "SAD", hint: "悲傷的" }, 
+                    { word: "BORED", hint: "無聊的" }, 
+                    { word: "ANGRY", hint: "生氣的" },
+                    { word: "CRAZY", hint: "瘋狂的" },
+                    { word: "HUNGRY", hint: "肚子餓的" },
+                    { word: "THIRSTY", hint: "口渴的" },
+                    { word: "SICK", hint: "生病的" },
+                    { word: "SCARED", hint: "害怕的" }
+                ],
+                "U5": [
+                    { word: "DECEMBER", hint: "十二月" }, 
+                    { word: "MONTH", hint: "月" }, 
+                    { word: "JANUARY", hint: "一月" }, 
+                    { word: "FEBRUARY", hint: "二月" }, 
+                    { word: "MARCH", hint: "三月" },
+                    { word: "APRIL", hint: "四月" },
+                    { word: "MAY", hint: "五月" },
+                    { word: "JUNE", hint: "六月" },
+                    { word: "JULY", hint: "七月" },
+                    { word: "AUGUST", hint: "八月" },
+                    { word: "SEPTEMBER", hint: "九月" },
+                    { word: "OCTOBER", hint: "十月" },
+                    { word: "NOVEMBER", hint: "十一月" }
+                ],
+                "U6": [
+                    { word: "BIRTHDAY", hint: "生日" }, 
+                    { word: "GIFT", hint: "禮物" }, 
+                    { word: "THANKS", hint: "謝謝" }, 
+                    { word: "FROM", hint: "從.../來自" }, 
+                    { word: "US", hint: "我們 (受格)" },
+                    { word: "COMPUTER", hint: "電腦" },
+                    { word: "GAME", hint: "遊戲" },
+                    { word: "ME", hint: "我 (受格)" },
+                    { word: "YOU", hint: "你(受格)" },
+                    { word: "HIM", hint: "他 (受格)" },
+                    { word: "THEM", hint: "他們 (受格)" },
+                    { word: "TALK", hint: "說話" },
+                    { word: "SING", hint: "唱歌" },
+                    { word: "SONG", hint: "歌曲" },
+                    { word: "STORY", hint: "故事" }
+                ],
+                "U7": [
+                    { word: "FAMILY", hint: "家庭" }, 
+                    { word: "BROTHER", hint: "兄弟或弟" }, 
+                    { word: "SISTER", hint: "姊姊或妹" }, 
+                    { word: "PEOPLE", hint: "人們(當複數用)" }, 
+                    { word: "FATHER", hint: "父親" },
+                    { word: "AUNT", hint: "姑姑或阿姨" },
+                    { word: "MOTHER", hint: "母親" },
+                    { word: "UNCLE", hint: "伯父或叔叔" },
+                    { word: "COUSIN", hint: "堂(表)兄、弟、姊、妹" },
+                    { word: "GRANDFATHER", hint: "祖父" },
+                    { word: "GRANDMOTHER", hint: "祖母" },
+                    { word: "MANY", hint: "很多的" },
+                    { word: "BECAUSE", hint: "因為" }
+                ],
+                "U8": [
+                    { word: "AFRAID", hint: "害怕的" }, 
+                    { word: "PET", hint: "寵物" }, 
+                    { word: "DOG", hint: "狗" }, 
+                    { word: "BUT", hint: "但是" }, 
+                    { word: "LIKE/LIKES", hint: "喜歡" },
+                    { word: "CAT", hint: "貓" },
+                    { word: "ANIMAL", hint: "動物" },
+                    { word: "HAMSTER", hint: "倉鼠" },
+                    { word: "TURTLE", hint: "烏龜" },
+                    { word: "SNAKE", hint: "蛇" },
+                    { word: "FISH", hint: "魚" },
+                    { word: "BIRD", hint: "鳥" },
+                    { word: "LIZARD", hint: "蜥蜴" }
+                ],
+                "U9": [
+                    { word: "KITCHEN", hint: "廚房" }, 
+                    { word: "DOING", hint: "做" }, 
+                    { word: "BEDROOM", hint: "臥室" }, 
+                    { word: "BATHROOM", hint: "浴室" }, 
+                    { word: "DINING ROOM", hint: "飯廳" },
+                    { word: "STUDY", hint: "書房" },
+                    { word: "LIVING ROOM", hint: "客廳" },
+                    { word: "READING", hint: "閱讀" },
+                    { word: "COOKING", hint: "煮飯" },
+                    { word: "WATCHING", hint: "看" },
+                    { word: "TV", hint: "電視" },
+                    { word: "SLEEPING", hint: "睡覺" },
+                    { word: "EATING", hint: "吃" },
+                    { word: "WASHING", hint: "洗" },
+                    { word: "WRITING", hint: "寫" }
+                ],
+                "U10": [
+                    { word: "DESK", hint: "書桌" }, 
+                    { word: "UNDER", hint: "在...下面" }, 
+                    { word: "BED", hint: "床" }, 
+                    { word: "TABLE", hint: "桌子" }, 
+                    { word: "CLOSET", hint: "衣櫥" },
+                    { word: "BATHTUB", hint: "浴缸" },
+                    { word: "SINK", hint: "水槽" },
+                    { word: "CHAIR", hint: "椅子" },
+                    { word: "REFRIGERATOR", hint: "冰箱" },
+                    { word: "STOVE", hint: "火爐" },
+                    { word: "SOFA", hint: "沙發" },
+                    { word: "BESIDE", hint: "在...旁邊" },
+                    { word: "PUT", hint: "放" }
+                ]
             }
         };
 
@@ -505,12 +642,12 @@
             // 只有在流程停滯時 (答錯/看答案後) 點擊 Next，才真正執行跳轉
             if (!isGameActive) {
                 startGameSetup(); // 第一次開始遊戲
-            } else if (startBtn.textContent === '下一個單字' && wordIndex <= currentWordList.length) {
-                // 如果是「下一個單字」模式，代表上一個單字已經處理完 (答對、答錯或看答案)
-                 loadNextWord();
-            } else {
+            } else if (startBtn.textContent === '下一個單字/跳過' && wordIndex <= currentWordList.length) {
                 // 遊戲進行中，但還沒答完，則視為跳過
                 skipCurrentWord();
+            } else {
+                // 如果是「下一個單字」模式，代表上一個單字已經處理完 (答錯或看答案)
+                 loadNextWord();
             }
         }
 
@@ -639,7 +776,7 @@
             repeatBtn.disabled = true;
             
             reviewStatus.textContent = '';
-            startBtn.textContent = '重新開始';
+            startBtn.textContent = '重新開始`;
             
             hintDisplay.textContent = '👏 恭喜您！所有單字測驗和複習都已完成！';
             feedbackMessage.textContent = '請選擇新的單元開始下一輪練習。';
@@ -773,7 +910,7 @@
                 answerBtn.disabled = false; // 答錯後仍可看答案
 
                 // 答錯後啟用手動跳轉按鈕
-                startBtn.textContent = '下一個單字/跳過';
+                startBtn.textContent = '下一個單字';
                 startBtn.disabled = false; 
                 
                 // 1.5 秒後自動重唸單字
@@ -831,8 +968,8 @@
             // V3.0.5 修正：看答案後等待 1.5 秒，啟用手動跳轉按鈕
             utterThis.onend = () => {
                 setTimeout(() => {
-                    feedbackMessage.textContent += ' (請點擊「下一個單字/跳過」繼續)';
-                    startBtn.textContent = '下一個單字/跳過';
+                    feedbackMessage.textContent += ' (請點擊「下一個單字」繼續)';
+                    startBtn.textContent = '下一個單字';
                     startBtn.disabled = false; // 啟用手動跳轉按鈕
                     wordIndex++; // 索引已增加，等待 loadNextWord
                 }, 1500); 
