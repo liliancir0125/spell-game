@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小怪獸英文聽寫機 - 最穩固靜態按鈕版</title>
+    <title>小怪獸英文聽寫機 - 大耳狗喜拿版</title>
     <style>
-        /* ------------------- CSS 樣式 (與前一個版本相同) ------------------- */
+        /* ------------------- CSS 樣式 ------------------- */
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #f7f7e9;
+            /* 【大耳狗風格】背景色：柔和淺藍色 */
+            background-color: #e9f7ff; 
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -69,6 +70,7 @@
         }
 
         .unit-btn.selected {
+            /* 主題藍色 */
             background-color: #4a90e2; 
             color: white;
             border-color: #4a90e2;
@@ -95,7 +97,7 @@
         #input-area {
             display: flex;
             justify-content: center;
-            gap: 8px;
+            gap: 8px; /* 字元間隔 */
             margin-bottom: 30px;
             flex-wrap: wrap;
         }
@@ -112,6 +114,14 @@
             color: #333;
         }
 
+        /* 虛擬空格槽，處理組合單字間的間隔 */
+        .space-slot {
+            width: 20px; 
+            height: 55px;
+            background-color: transparent;
+            border: none;
+        }
+
         /* 鍵盤與控制按鈕 */
         #keyboard {
             display: grid;
@@ -121,8 +131,9 @@
         }
 
         .key {
-            background-color: #ff99aa;
-            color: white;
+            /* 【大耳狗風格】鍵盤色：淺天空藍 */
+            background-color: #a4e2ff; 
+            color: #333; /* 讓字體更清楚 */
             border: none;
             padding: 12px 0;
             font-size: 22px;
@@ -133,8 +144,20 @@
         }
 
         .key:active {
-            background-color: #ff6688;
+            background-color: #79c5f0; /* 按下時更深一點 */
         }
+        
+        /* DELETE 鍵 */
+        #delete-key {
+            background-color: #777;
+            color: white;
+            font-size: 18px;
+        }
+
+        #delete-key:active {
+            background-color: #555;
+        }
+
 
         #control-buttons {
             display: flex;
@@ -202,7 +225,7 @@
 <body>
 
     <div id="game-container">
-        <h2>小怪獸英文聽寫機 ✍️</h2>
+        <h2>大耳狗聽寫樂園 ⭐️</h2>
         
         <div id="review-status"></div>
 
@@ -234,20 +257,22 @@
     </div>
 
     <script>
-        // ------------------- JavaScript 邏輯 (簡化初始化) -------------------
+        // ------------------- JavaScript 邏輯 -------------------
 
-        // 1. 完整的單字庫 
+        // 1. 完整的單字庫 (已修正 I AM 和 THERE IS，使用空格分隔)
         const allWordUnits = {
             "G1": {
-                "U1": [{ word: "HEIS", hint: "他是/她們是 (he is)" }, { word: "IAM", hint: "我是 (I am)" }, { word: "NAME", hint: "名字" }, { word: "SHEIS", hint: "她是 (she is)" }, { word: "THE", hint: "這個/那個" }, { word: "THIS", hint: "這個" }, { word: "YOUARE", hint: "你是/您是 (you are)" }, { word: "WHAT", hint: "什麼" }],
+                // 注意：複合詞彙用空格分隔，例如 "I AM" 或 "THERE IS"
+                "U1": [{ word: "HE IS", hint: "他是/她們是 (he is)" }, { word: "I AM", hint: "我是 (I am)" }, { word: "NAME", hint: "名字" }, { word: "SHE IS", hint: "她是 (she is)" }, { word: "THE", hint: "這個/那個" }, { word: "THIS", hint: "這個" }, { word: "YOU ARE", hint: "你是/您是 (you are)" }, { word: "WHAT", hint: "什麼" }],
                 "U2": [{ word: "THAT", hint: "那個" }, { word: "AND", hint: "和" }, { word: "OUR", hint: "我們的" }, { word: "HER", hint: "她的" }, { word: "HIS", hint: "他的" }, { word: "MY", hint: "我的" }, { word: "OPEN", hint: "打開" }, { word: "YOUR", hint: "你的" }, { word: "THEY", hint: "他們/她們" }, { word: "CLOSE", hint: "關閉" }, { word: "WE", hint: "我們" }, { word: "THEIR", hint: "他們的" }],
                 "U3": [{ word: "SCHOOL", hint: "學校" }, { word: "GOOD", hint: "好的/棒的" }, { word: "GRADE", hint: "年級/分數" }, { word: "HELLO", hint: "你好" }, { word: "IN", hint: "在...裡面" }, { word: "NO", hint: "不" }, { word: "NOT", hint: "不" }, { word: "FIRST", hint: "第一" }, { word: "TOO", hint: "也" }, { word: "WHO", hint: "誰" }, { word: "YES", hint: "是的" }],
                 "U4": [{ word: "WHITE", hint: "白色" }, { word: "ORANGE", hint: "橘色" }, { word: "BLACK", hint: "黑色" }, { word: "GREEN", hint: "綠色" }, { word: "YELLOW", hint: "黃色" }, { word: "BLUE", hint: "藍色" }, { word: "COLOR", hint: "顏色" }, { word: "PINK", hint: "粉紅色" }, { word: "RED", hint: "紅色" }, { word: "WHOSE", hint: "誰的" }],
-                "U5": [{ word: "WHERE", hint: "在哪裡" }, { word: "GROUP", hint: "小組" }, { word: "THEREIS", hint: "有 (單數)" }, { word: "CLASSROOM", hint: "教室" }, { word: "IT", hint: "它" }, { word: "THEREARE", hint: "有 (複數)" }, { word: "TELL", hint: "告訴" }, { word: "AT", hint: "在" }, { word: "GO", hint: "去" }, { word: "ON", hint: "在...上面" }],
+                // 注意：THERE IS 複合詞彙已用空格分隔
+                "U5": [{ word: "WHERE", hint: "在哪裡" }, { word: "GROUP", hint: "小組" }, { word: "THERE IS", hint: "有 (單數) (there is)" }, { word: "CLASSROOM", hint: "教室" }, { word: "IT", hint: "它" }, { word: "THERE ARE", hint: "有 (複數) (there are)" }, { word: "TELL", hint: "告訴" }, { word: "AT", hint: "在" }, { word: "GO", hint: "去" }, { word: "ON", hint: "在...上面" }],
                 "U6": [{ word: "DRAW", hint: "畫畫" }, { word: "READ", hint: "閱讀" }, { word: "COUNT", hint: "數數" }, { word: "WRITE", hint: "寫" }, { word: "CAN", hint: "可以" }, { word: "CANT", hint: "不能 (can't)" }, { word: "CANNOT", hint: "不能" }, { word: "EAT", hint: "吃" }, { word: "RUN", hint: "跑" }, { word: "SLEEP", hint: "睡覺" }],
-                "U7": [{ word: "THESE", hint: "這些" }, { word: "THOSE", hint: "那些" }, { word: "COMETO", hint: "來到 (come to)" }, { word: "TWO", hint: "二" }, { word: "WALKTO", hint: "走向 (walk to)" }, { word: "BYBUS", hint: "搭公車" }, { word: "FOUR", hint: "四" }, { word: "HOW", hint: "如何/怎麼樣" }, { word: "ONE", hint: "一" }, { word: "THREE", hint: "三" }],
-                "U8": [{ word: "DOES", hint: "做 (單數第三人稱)" }, { word: "HOMEWORK", hint: "家庭作業" }, { word: "DOESNT", hint: "不做 (doesn't)" }, { word: "KNOW", hint: "知道" }, { word: "WITH", hint: "與...一起" }, { word: "DONT", hint: "不做 (don't)" }, { word: "KICK", hint: "踢" }, { word: "LETS", hint: "讓我們 (let's)" }, { word: "WANTTO", hint: "想要 (want to)" }, { word: "JUMP", hint: "跳" }, { word: "DO", hint: "做 (動詞)" }, { word: "PLAY", hint: "玩" }],
-                "U9": [{ word: "EIGHT", hint: "八" }, { word: "ELEVEN", hint: "十一" }, { word: "WHATTIME", hint: "什麼時間 (what time)" }, { word: "TWELVE", hint: "十二" }, { word: "FIVE", hint: "五" }, { word: "FOR", hint: "為了" }, { word: "NINE", hint: "九" }, { word: "SEVEN", hint: "七" }, { word: "SIX", hint: "六" }, { word: "TEN", hint: "十" }],
+                "U7": [{ word: "THESE", hint: "這些" }, { word: "THOSE", hint: "那些" }, { word: "COME TO", hint: "來到 (come to)" }, { word: "TWO", hint: "二" }, { word: "WALK TO", hint: "走向 (walk to)" }, { word: "BY BUS", hint: "搭公車" }, { word: "FOUR", hint: "四" }, { word: "HOW", hint: "如何/怎麼樣" }, { word: "ONE", hint: "一" }, { word: "THREE", hint: "三" }],
+                "U8": [{ word: "DOES", hint: "做 (單數第三人稱)" }, { word: "HOMEWORK", hint: "家庭作業" }, { word: "DOESNT", hint: "不做 (doesn't)" }, { word: "KNOW", hint: "知道" }, { word: "WITH", hint: "與...一起" }, { word: "DONT", hint: "不做 (don't)" }, { word: "KICK", hint: "踢" }, { word: "LETS", hint: "讓我們 (let's)" }, { word: "WANT TO", hint: "想要 (want to)" }, { word: "JUMP", hint: "跳" }, { word: "DO", hint: "做 (動詞)" }, { word: "PLAY", hint: "玩" }],
+                "U9": [{ word: "EIGHT", hint: "八" }, { word: "ELEVEN", hint: "十一" }, { word: "WHAT TIME", hint: "什麼時間 (what time)" }, { word: "TWELVE", hint: "十二" }, { word: "FIVE", hint: "五" }, { word: "FOR", hint: "為了" }, { word: "NINE", hint: "九" }, { word: "SEVEN", hint: "七" }, { word: "SIX", hint: "六" }, { word: "TEN", hint: "十" }],
                 "U10": [{ word: "WINDY", hint: "多風的" }, { word: "DRY", hint: "乾燥的" }, { word: "WARM", hint: "溫暖的" }, { word: "RAINY", hint: "下雨的" }, { word: "COLD", hint: "寒冷的" }, { word: "HOT", hint: "炎熱的" }, { word: "OR", hint: "或者" }, { word: "SUNNY", hint: "晴朗的" }, { word: "TODAY", hint: "今天" }, { word: "WET", hint: "潮濕的" }]
             },
             "G2": {
@@ -363,7 +388,7 @@
             }
         }
         
-        // --- 遊戲邏輯函數 (與前一個版本相同) ---
+        // --- 遊戲邏輯函數 ---
         
         function setEnglishVoice() {
             if (englishVoice) return;
@@ -372,6 +397,11 @@
         }
         synth.onvoiceschanged = setEnglishVoice;
         
+        /**
+         * 語音合成函數
+         * @param {string} text 要唸出的文字
+         * @param {number} rate 語速 (已優化為 0.9，讓 iPad 聲音更自然)
+         */
         function speak(text, rate = 0.9) {
             if (synth.speaking) {
                 synth.cancel();
@@ -385,9 +415,18 @@
             return utterThis;
         }
 
+        /**
+         * 朗讀單字，直接唸出完整的詞組，確保中間空格被唸成停頓。
+         * @param {string} word 實際要拼寫的單字/詞組，包含空格 (例如 "I AM")
+         */
         function readWord(word) {
+            // **優化 1：嚴格鎖定按鈕**
             repeatBtn.disabled = true; 
-            const utterThis = speak(word, 0.7); 
+            
+            let speechWord = word; 
+            
+            // 使用較為自然的語速 0.8，確保聲音清楚且不會過於機械
+            const utterThis = speak(speechWord, 0.8); 
             utterThis.onend = () => {
                 repeatBtn.disabled = false;
             };
@@ -431,7 +470,7 @@
         }
 
         /**
-         * 載入下一組單字
+         * 載入下一組單字 (處理空格並生成輸入格子)
          */
         function loadNextWord() {
             if (wordIndex >= currentWordList.length) {
@@ -461,13 +500,27 @@
             const unitInfo = isReviewMode ? "複習題" : `第 ${wordIndex + 1}/${currentWordList.length} 題`;
             hintDisplay.textContent = `[${unitInfo}] ${wordData.hint}`;
 
-            for (let i = 0; i < currentWord.length; i++) {
-                const slot = document.createElement('div');
-                slot.className = 'letter-slot';
-                slot.id = `slot-${i}`;
-                inputArea.appendChild(slot);
-            }
-
+            // 處理空格：將所有字元 (包括空格) 轉為陣列
+            const targetChars = currentWord.split(''); 
+            
+            let letterIndex = 0;
+            targetChars.forEach((char, i) => {
+                if (char === ' ') {
+                    // 遇到空格時，生成一個虛擬空格槽 (space-slot)，實現中間分開的效果
+                    const spaceSlot = document.createElement('div');
+                    spaceSlot.className = 'space-slot';
+                    inputArea.appendChild(spaceSlot);
+                } else {
+                    // 遇到字母時，生成一個字母槽 (letter-slot)
+                    const slot = document.createElement('div');
+                    slot.className = 'letter-slot';
+                    // 這裡的 ID 必須只針對字母部分進行編號
+                    slot.id = `slot-${letterIndex}`;
+                    inputArea.appendChild(slot);
+                    letterIndex++;
+                }
+            });
+            
             readWord(currentWord);
         }
 
@@ -487,41 +540,76 @@
             feedbackMessage.textContent = '請選擇新的單元開始下一輪練習。';
         }
 
+        /**
+         * 處理鍵盤字母點擊
+         */
         function handleKeyClick(letter) {
             if (currentWord === "") return;
-            if (currentSpelling.length < currentWord.length) {
+            
+            // 取得目標單字中去除空格的長度
+            const pureWord = currentWord.replace(/\s/g, ''); 
+            
+            if (currentSpelling.length < pureWord.length) {
                 currentSpelling.push(letter);
                 const currentSlot = document.getElementById(`slot-${currentSpelling.length - 1}`);
                 currentSlot.textContent = letter;
             }
-            if (currentSpelling.length === currentWord.length) {
+            if (currentSpelling.length === pureWord.length) {
                 checkBtn.disabled = false;
             }
         }
+        
+        /**
+         * 處理 DELETE 鍵點擊 (新增功能)
+         */
+        function handleDeleteClick() {
+            if (currentSpelling.length > 0) {
+                // 1. 清除顯示
+                const lastSlotIndex = currentSpelling.length - 1;
+                const lastSlot = document.getElementById(`slot-${lastSlotIndex}`);
+                if (lastSlot) {
+                    lastSlot.textContent = ''; // 清空格子顯示
+                }
+                
+                // 2. 移除數據
+                currentSpelling.pop(); 
+                
+                // 3. 禁用檢查按鈕 (如果輸入清空)
+                if (currentSpelling.length === 0) {
+                    checkBtn.disabled = true;
+                }
+            }
+        }
+
 
         function checkSpelling() {
+            // 立即鎖定按鈕，防止重複點擊
             checkBtn.disabled = true;
             repeatBtn.disabled = true;
             answerBtn.disabled = true; 
             
             const playerWord = currentSpelling.join('');
+            // 移除目標單字中的空格進行比對
+            const pureWord = currentWord.replace(/\s/g, ''); 
 
-            if (playerWord === currentWord) {
+            if (playerWord === pureWord) {
                 feedbackMessage.textContent = '🥳 太棒了！拼寫完全正確！';
+                // 語音報讀正確答案
                 speak('Excellent! The word is ' + currentWord, 1.0);
                 
-                for (let i = 0; i < currentWord.length; i++) {
+                for (let i = 0; i < pureWord.length; i++) {
                     document.getElementById(`slot-${i}`).classList.add('correct');
                 }
                 
                 wordIndex++;
-                setTimeout(loadNextWord, 3000);
+                // 成功後快速進入下一題 (1.5 秒延遲)
+                setTimeout(loadNextWord, 1500);
             } else {
-                feedbackMessage.textContent = '💡 錯囉！請再聽一次或查看答案。';
+                feedbackMessage.textContent = '💡 錯囉！即將重唸，請再試一次！';
                 
-                for (let i = 0; i < currentWord.length; i++) {
+                for (let i = 0; i < pureWord.length; i++) {
                     const slot = document.getElementById(`slot-${i}`);
-                    if (currentSpelling[i] && currentSpelling[i] === currentWord[i]) {
+                    if (currentSpelling[i] && currentSpelling[i] === pureWord[i]) {
                         slot.classList.add('correct');
                     } else {
                         slot.classList.add('incorrect');
@@ -533,9 +621,12 @@
                     errorList.push(currentWordData);
                 }
                 
-                setTimeout(() => speak('Try again! Listen carefully.'), 500); 
+                // **優化 2：錯誤後立即清空，簡化重試流程**
+                resetForRetry(); // 立即清空輸入欄位
                 answerBtn.disabled = false;
-                setTimeout(resetForRetry, 3000);
+                
+                // 1.5 秒後自動重唸單字
+                setTimeout(() => readWord(currentWord), 1500); 
             }
         }
         
@@ -543,21 +634,29 @@
             feedbackMessage.textContent = '請再試一次！點擊字母重新輸入。';
             currentSpelling = [];
             
-            for (let i = 0; i < currentWord.length; i++) {
+            // 取得目標單字中去除空格的長度
+            const pureWord = currentWord.replace(/\s/g, '');
+            
+            for (let i = 0; i < pureWord.length; i++) {
                 const slot = document.getElementById(`slot-${i}`);
-                slot.textContent = '';
-                slot.classList.remove('correct', 'incorrect', 'skipped');
+                if (slot) {
+                    slot.textContent = '';
+                    slot.classList.remove('correct', 'incorrect', 'skipped');
+                }
             }
             repeatBtn.disabled = false;
         }
 
         function showAnswer() {
             const word = currentWord;
+            const pureWord = word.replace(/\s/g, '');
             
-            for (let i = 0; i < word.length; i++) {
+            for (let i = 0; i < pureWord.length; i++) {
                 const slot = document.getElementById(`slot-${i}`);
-                slot.textContent = word[i];
-                slot.classList.add('skipped');
+                if (slot) {
+                    slot.textContent = pureWord[i];
+                    slot.classList.add('skipped');
+                }
             }
             
             feedbackMessage.textContent = `答案是 ${word}。這個單字已加入待複習清單！`;
@@ -572,13 +671,15 @@
             checkBtn.disabled = true;
             answerBtn.disabled = true;
             
-            setTimeout(loadNextWord, 3000);
+            // 看答案後快速進入下一題
+            setTimeout(loadNextWord, 1500);
         }
 
 
         // --- 初始化 ---
         function createKeyboard() {
             const keyboardDiv = document.getElementById('keyboard');
+            
             keys.forEach(letter => {
                 const keyBtn = document.createElement('button');
                 keyBtn.className = 'key';
@@ -586,13 +687,20 @@
                 keyBtn.onclick = () => handleKeyClick(letter);
                 keyboardDiv.appendChild(keyBtn);
             });
+            
+            // 新增 DELETE 鍵
+            const deleteKey = document.createElement('button');
+            deleteKey.id = 'delete-key';
+            deleteKey.className = 'key';
+            deleteKey.textContent = 'DEL';
+            deleteKey.onclick = handleDeleteClick;
+            keyboardDiv.appendChild(deleteKey);
         }
 
         // 頁面載入時執行
         window.onload = function() {
             createKeyboard();
-            // 無需 initializeSelectors，因為年級按鈕已在 HTML 中
-            checkSelectionStatus(); // 確保開始按鈕初始是禁用的
+            checkSelectionStatus(); 
         };
         
         repeatBtn.onclick = () => readWord(currentWord); 
