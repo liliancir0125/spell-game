@@ -3,13 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小怪獸英文聽寫機 - 大耳狗喜拿版</title>
+    <title>大耳狗聽寫樂園 - Cinnamoroll Edition</title>
     <style>
         /* ------------------- CSS 樣式 ------------------- */
         body {
             font-family: 'Arial', sans-serif;
-            /* 【大耳狗風格】背景色：柔和淺藍色 */
-            background-color: #e9f7ff; 
+            /* 1. 【背景圖】使用外部圖片連結作為背景 */
+            background-image: url('https://i.imgur.com/KxX9I8I.png'); /* 淺藍色雲朵天空圖 */
+            background-size: cover; /* 覆蓋整個頁面 */
+            background-attachment: fixed; /* 背景不隨捲動軸移動 */
+            background-color: #e9f7ff; /* 作為圖片載入失敗時的後備顏色 */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -20,9 +23,12 @@
         #game-container {
             width: 90%;
             max-width: 650px;
-            background-color: #fff;
+            /* 淺藍色邊框，增加可愛感 */
+            border: 5px solid #a4e2ff; 
+            /* 將容器設為半透明白色，讓背景圖透出來 */
+            background-color: rgba(255, 255, 255, 0.9); 
             border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             padding: 30px;
             text-align: center;
         }
@@ -56,7 +62,8 @@
         .unit-btn {
             padding: 8px 15px;
             font-size: 16px;
-            border: 2px solid #ccc;
+            /* 粉色邊框 */
+            border: 2px solid #ffb3c1; 
             border-radius: 8px;
             cursor: pointer;
             background-color: #f0f0f0;
@@ -225,7 +232,7 @@
 <body>
 
     <div id="game-container">
-        <h2>大耳狗聽寫樂園 ⭐️</h2>
+        <h2>☁️ 大耳狗聽寫樂園 🩷</h2>
         
         <div id="review-status"></div>
 
@@ -259,20 +266,18 @@
     <script>
         // ------------------- JavaScript 邏輯 -------------------
 
-        // 1. 完整的單字庫 (已修正 I AM 和 THERE IS，使用空格分隔)
+        // 2. 【修復 Bug】移除提示中的英文小寫答案
         const allWordUnits = {
             "G1": {
-                // 注意：複合詞彙用空格分隔，例如 "I AM" 或 "THERE IS"
-                "U1": [{ word: "HE IS", hint: "他是/她們是 (he is)" }, { word: "I AM", hint: "我是 (I am)" }, { word: "NAME", hint: "名字" }, { word: "SHE IS", hint: "她是 (she is)" }, { word: "THE", hint: "這個/那個" }, { word: "THIS", hint: "這個" }, { word: "YOU ARE", hint: "你是/您是 (you are)" }, { word: "WHAT", hint: "什麼" }],
+                "U1": [{ word: "HE IS", hint: "他是/她們是" }, { word: "I AM", hint: "我是" }, { word: "NAME", hint: "名字" }, { word: "SHE IS", hint: "她是" }, { word: "THE", hint: "這個/那個" }, { word: "THIS", hint: "這個" }, { word: "YOU ARE", hint: "你是/您是" }, { word: "WHAT", hint: "什麼" }],
                 "U2": [{ word: "THAT", hint: "那個" }, { word: "AND", hint: "和" }, { word: "OUR", hint: "我們的" }, { word: "HER", hint: "她的" }, { word: "HIS", hint: "他的" }, { word: "MY", hint: "我的" }, { word: "OPEN", hint: "打開" }, { word: "YOUR", hint: "你的" }, { word: "THEY", hint: "他們/她們" }, { word: "CLOSE", hint: "關閉" }, { word: "WE", hint: "我們" }, { word: "THEIR", hint: "他們的" }],
                 "U3": [{ word: "SCHOOL", hint: "學校" }, { word: "GOOD", hint: "好的/棒的" }, { word: "GRADE", hint: "年級/分數" }, { word: "HELLO", hint: "你好" }, { word: "IN", hint: "在...裡面" }, { word: "NO", hint: "不" }, { word: "NOT", hint: "不" }, { word: "FIRST", hint: "第一" }, { word: "TOO", hint: "也" }, { word: "WHO", hint: "誰" }, { word: "YES", hint: "是的" }],
                 "U4": [{ word: "WHITE", hint: "白色" }, { word: "ORANGE", hint: "橘色" }, { word: "BLACK", hint: "黑色" }, { word: "GREEN", hint: "綠色" }, { word: "YELLOW", hint: "黃色" }, { word: "BLUE", hint: "藍色" }, { word: "COLOR", hint: "顏色" }, { word: "PINK", hint: "粉紅色" }, { word: "RED", hint: "紅色" }, { word: "WHOSE", hint: "誰的" }],
-                // 注意：THERE IS 複合詞彙已用空格分隔
-                "U5": [{ word: "WHERE", hint: "在哪裡" }, { word: "GROUP", hint: "小組" }, { word: "THERE IS", hint: "有 (單數) (there is)" }, { word: "CLASSROOM", hint: "教室" }, { word: "IT", hint: "它" }, { word: "THERE ARE", hint: "有 (複數) (there are)" }, { word: "TELL", hint: "告訴" }, { word: "AT", hint: "在" }, { word: "GO", hint: "去" }, { word: "ON", hint: "在...上面" }],
+                "U5": [{ word: "WHERE", hint: "在哪裡" }, { word: "GROUP", hint: "小組" }, { word: "THERE IS", hint: "有 (單數)" }, { word: "CLASSROOM", hint: "教室" }, { word: "IT", hint: "它" }, { word: "THERE ARE", hint: "有 (複數)" }, { word: "TELL", hint: "告訴" }, { word: "AT", hint: "在" }, { word: "GO", hint: "去" }, { word: "ON", hint: "在...上面" }],
                 "U6": [{ word: "DRAW", hint: "畫畫" }, { word: "READ", hint: "閱讀" }, { word: "COUNT", hint: "數數" }, { word: "WRITE", hint: "寫" }, { word: "CAN", hint: "可以" }, { word: "CANT", hint: "不能 (can't)" }, { word: "CANNOT", hint: "不能" }, { word: "EAT", hint: "吃" }, { word: "RUN", hint: "跑" }, { word: "SLEEP", hint: "睡覺" }],
-                "U7": [{ word: "THESE", hint: "這些" }, { word: "THOSE", hint: "那些" }, { word: "COME TO", hint: "來到 (come to)" }, { word: "TWO", hint: "二" }, { word: "WALK TO", hint: "走向 (walk to)" }, { word: "BY BUS", hint: "搭公車" }, { word: "FOUR", hint: "四" }, { word: "HOW", hint: "如何/怎麼樣" }, { word: "ONE", hint: "一" }, { word: "THREE", hint: "三" }],
-                "U8": [{ word: "DOES", hint: "做 (單數第三人稱)" }, { word: "HOMEWORK", hint: "家庭作業" }, { word: "DOESNT", hint: "不做 (doesn't)" }, { word: "KNOW", hint: "知道" }, { word: "WITH", hint: "與...一起" }, { word: "DONT", hint: "不做 (don't)" }, { word: "KICK", hint: "踢" }, { word: "LETS", hint: "讓我們 (let's)" }, { word: "WANT TO", hint: "想要 (want to)" }, { word: "JUMP", hint: "跳" }, { word: "DO", hint: "做 (動詞)" }, { word: "PLAY", hint: "玩" }],
-                "U9": [{ word: "EIGHT", hint: "八" }, { word: "ELEVEN", hint: "十一" }, { word: "WHAT TIME", hint: "什麼時間 (what time)" }, { word: "TWELVE", hint: "十二" }, { word: "FIVE", hint: "五" }, { word: "FOR", hint: "為了" }, { word: "NINE", hint: "九" }, { word: "SEVEN", hint: "七" }, { word: "SIX", hint: "六" }, { word: "TEN", hint: "十" }],
+                "U7": [{ word: "THESE", hint: "這些" }, { word: "THOSE", hint: "那些" }, { word: "COME TO", hint: "來到" }, { word: "TWO", hint: "二" }, { word: "WALK TO", hint: "走向" }, { word: "BY BUS", hint: "搭公車" }, { word: "FOUR", hint: "四" }, { word: "HOW", hint: "如何/怎麼樣" }, { word: "ONE", hint: "一" }, { word: "THREE", hint: "三" }],
+                "U8": [{ word: "DOES", hint: "做 (單數第三人稱)" }, { word: "HOMEWORK", hint: "家庭作業" }, { word: "DOESNT", hint: "不做 (doesn't)" }, { word: "KNOW", hint: "知道" }, { word: "WITH", hint: "與...一起" }, { word: "DONT", hint: "不做 (don't)" }, { word: "KICK", hint: "踢" }, { word: "LETS", hint: "讓我們 (let's)" }, { word: "WANT TO", hint: "想要" }, { word: "JUMP", hint: "跳" }, { word: "DO", hint: "做 (動詞)" }, { word: "PLAY", hint: "玩" }],
+                "U9": [{ word: "EIGHT", hint: "八" }, { word: "ELEVEN", hint: "十一" }, { word: "WHAT TIME", hint: "什麼時間" }, { word: "TWELVE", hint: "十二" }, { word: "FIVE", hint: "五" }, { word: "FOR", hint: "為了" }, { word: "NINE", hint: "九" }, { word: "SEVEN", hint: "七" }, { word: "SIX", hint: "六" }, { word: "TEN", hint: "十" }],
                 "U10": [{ word: "WINDY", hint: "多風的" }, { word: "DRY", hint: "乾燥的" }, { word: "WARM", hint: "溫暖的" }, { word: "RAINY", hint: "下雨的" }, { word: "COLD", hint: "寒冷的" }, { word: "HOT", hint: "炎熱的" }, { word: "OR", hint: "或者" }, { word: "SUNNY", hint: "晴朗的" }, { word: "TODAY", hint: "今天" }, { word: "WET", hint: "潮濕的" }]
             },
             "G2": {
@@ -342,7 +347,8 @@
                 Object.keys(units).forEach(unit => {
                     const button = document.createElement('button');
                     button.className = 'unit-btn';
-                    button.textContent = `${unit} (${units[unit].length})`;
+                    // 【大耳狗風格】在單元按鈕前加 Emoji
+                    button.textContent = `🌸 ${unit} (${units[unit].length})`; 
                     button.dataset.unit = unit; 
                     button.onclick = toggleUnitSelection; 
                     unitButtonsContainer.appendChild(button);
@@ -390,19 +396,25 @@
         
         // --- 遊戲邏輯函數 ---
         
+        // 3. 【語音優化】設定發音引擎，優先選擇音高較高的聲音
         function setEnglishVoice() {
             if (englishVoice) return;
             const voices = synth.getVoices();
-            englishVoice = voices.find(voice => voice.lang.startsWith('en-US') || voice.lang.startsWith('en-GB'));
+            // 篩選出 US/GB 英文女聲，如果找不到，就找第一個英文聲音
+            englishVoice = voices.find(voice => 
+                (voice.lang.startsWith('en-US') || voice.lang.startsWith('en-GB')) && 
+                voice.name.includes('Female')
+            ) || voices.find(voice => voice.lang.startsWith('en'));
         }
         synth.onvoiceschanged = setEnglishVoice;
         
         /**
          * 語音合成函數
          * @param {string} text 要唸出的文字
-         * @param {number} rate 語速 (已優化為 0.9，讓 iPad 聲音更自然)
+         * @param {number} rate 語速
+         * @param {number} pitch 音高
          */
-        function speak(text, rate = 0.9) {
+        function speak(text, rate = 0.9, pitch = 1.0) {
             if (synth.speaking) {
                 synth.cancel();
             }
@@ -411,22 +423,23 @@
             utterThis.voice = englishVoice;
             utterThis.lang = 'en-US'; 
             utterThis.rate = rate; 
+            utterThis.pitch = pitch; // 新增音高設定
             synth.speak(utterThis);
             return utterThis;
         }
 
         /**
-         * 朗讀單字，直接唸出完整的詞組，確保中間空格被唸成停頓。
-         * @param {string} word 實際要拼寫的單字/詞組，包含空格 (例如 "I AM")
+         * 朗讀單字，直接唸出完整的詞組。
+         * 調整語速和音高，讓聲音更像小朋友/女老師。
+         * @param {string} word 實際要拼寫的單字/詞組
          */
         function readWord(word) {
-            // **優化 1：嚴格鎖定按鈕**
             repeatBtn.disabled = true; 
             
             let speechWord = word; 
             
-            // 使用較為自然的語速 0.8，確保聲音清楚且不會過於機械
-            const utterThis = speak(speechWord, 0.8); 
+            // 4. 【發音修正】將語速調為 0.9，音高調高到 1.2
+            const utterThis = speak(speechWord, 0.9, 1.2); 
             utterThis.onend = () => {
                 repeatBtn.disabled = false;
             };
@@ -593,9 +606,10 @@
             const pureWord = currentWord.replace(/\s/g, ''); 
 
             if (playerWord === pureWord) {
-                feedbackMessage.textContent = '🥳 太棒了！拼寫完全正確！';
-                // 語音報讀正確答案
-                speak('Excellent! The word is ' + currentWord, 1.0);
+                // 【大耳狗風格】成功反饋替換為可愛的棒棒糖
+                feedbackMessage.textContent = '🍭 太棒了！拼寫完全正確！'; 
+                // 語音報讀正確答案 (使用較快的 1.0 語速和標準 1.0 音高)
+                speak('Excellent! The word is ' + currentWord, 1.0, 1.0);
                 
                 for (let i = 0; i < pureWord.length; i++) {
                     document.getElementById(`slot-${i}`).classList.add('correct');
@@ -621,8 +635,8 @@
                     errorList.push(currentWordData);
                 }
                 
-                // **優化 2：錯誤後立即清空，簡化重試流程**
-                resetForRetry(); // 立即清空輸入欄位
+                // 錯誤後立即清空，簡化重試流程
+                resetForRetry(); 
                 answerBtn.disabled = false;
                 
                 // 1.5 秒後自動重唸單字
