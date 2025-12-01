@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>英文聽寫練習機 (平板優化 V3.0.3)</title>
+    <title>英文聽寫練習機 (平板優化 V3.0.5)</title>
     <style>
         /* ------------------- CSS 樣式 ------------------- */
         body {
@@ -15,6 +15,13 @@
             align-items: center;
             padding-top: 30px; 
             color: #333;
+        }
+        
+        /* ------------------- V3.0.4 新增：防止行動裝置輸入時自動縮放 ------------------- */
+        body, .key, .letter-slot {
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+            text-size-adjust: 100%;
         }
 
         #game-container {
@@ -229,7 +236,7 @@
 <body>
 
     <div id="game-container">
-        <h2>☁️ 英文聽寫練習機 V3.0.3</h2>
+        <h2>☁️ 英文聽寫練習機 V3.0.5</h2>
         
         <div id="review-status"></div>
 
@@ -263,7 +270,7 @@
     <script>
         // ------------------- JavaScript 邏輯 -------------------
 
-        // 1. 單字庫 (G1 單字和中文提示已更新，並將 First 和 Grade 合併為 FIRST GRADE)
+        // 1. 單字庫
         const allWordUnits = {
             "G1": {
                 "U1": [
@@ -406,7 +413,7 @@
         let wordIndex = 0;
         let errorList = [];
         let isReviewMode = false;
-        let isGameActive = false; // 新增：標記遊戲是否正在進行中
+        let isGameActive = false; 
         let currentGrade = null; 
         let selectedUnits = []; 
         const keys = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('');
@@ -495,10 +502,14 @@
          * 處理「開始遊戲」或「下一個單字」的邏輯
          */
         function handleStartNext() {
+            // 只有在流程停滯時 (答錯/看答案後) 點擊 Next，才真正執行跳轉
             if (!isGameActive) {
                 startGameSetup(); // 第一次開始遊戲
+            } else if (startBtn.textContent === '下一個單字' && wordIndex <= currentWordList.length) {
+                // 如果是「下一個單字」模式，代表上一個單字已經處理完 (答對、答錯或看答案)
+                 loadNextWord();
             } else {
-                // 遊戲進行中：跳過當前單字，進入下一題
+                // 遊戲進行中，但還沒答完，則視為跳過
                 skipCurrentWord();
             }
         }
@@ -522,7 +533,8 @@
             wordIndex = 0;
             isGameActive = true; 
             
-            startBtn.textContent = '下一個單字';
+            // 設置為跳過/下一個
+            startBtn.textContent = '下一個單字/跳過';
             loadNextWord();
         }
 
@@ -562,6 +574,9 @@
             repeatBtn.disabled = false;
             answerBtn.disabled = false; 
             checkBtn.disabled = true;
+            // 遊戲進行中時，按鈕顯示為「下一個單字/跳過」
+            startBtn.textContent = '下一個單字/跳過'; 
+            startBtn.disabled = false;
 
             const unitInfo = isReviewMode ? "複習題" : `第 ${wordIndex + 1}/${currentWordList.length} 題`;
             hintDisplay.textContent = `[${unitInfo}] ${wordData.hint}`;
@@ -630,7 +645,7 @@
             feedbackMessage.textContent = '請選擇新的單元開始下一輪練習。';
         }
 
-        // --- 語音功能 (V3.0.1 修正保持不變) ---
+        // --- 語音功能 ---
         
         function setEnglishVoice() {
             if (englishVoice) return;
@@ -705,18 +720,19 @@
         }
 
         /**
-         * 檢查拼寫 (流程優化 V3.0.3)
+         * 檢查拼寫 (流程優化 V3.0.5)
          */
         function checkSpelling() {
             checkBtn.disabled = true;
             repeatBtn.disabled = true;
-            answerBtn.disabled = true; // 檢查後鎖定看答案
+            answerBtn.disabled = true; 
+            startBtn.disabled = true; // 檢查期間鎖定跳過按鈕
 
             const playerWord = currentSpelling.join('');
             const pureWord = currentWord.replace(/\s/g, ''); 
 
             if (playerWord === pureWord) {
-                // 答對流程
+                // ✅ 答對流程：自動跳轉至下一題
                 feedbackMessage.textContent = '🍭 太棒了！拼寫完全正確！'; 
                 
                 // 唸正確答案
@@ -726,18 +742,16 @@
                     document.getElementById(`slot-${i}`).classList.add('correct');
                 }
 
-                // 修正：答對後等待 1.5 秒，但 **不自動跳轉**
+                // V3.0.5 修正：答對後等待 1.5 秒，自動跳轉下一題
                 utterThis.onend = () => {
                     setTimeout(() => {
-                        feedbackMessage.textContent += ' (請點擊「下一個單字」繼續)';
-                        startBtn.textContent = '下一個單字';
-                        startBtn.disabled = false; // 啟用跳轉按鈕
-                        wordIndex++; // 索引已增加，等待 loadNextWord
+                        wordIndex++; 
+                        loadNextWord();
                     }, 1500); 
                 };
                 
             } else {
-                // 答錯流程
+                // ❌ 答錯流程：手動跳轉
                 feedbackMessage.textContent = '💡 錯囉！即將重唸，請再試一次！';
                 
                 for (let i = 0; i < pureWord.length; i++) {
@@ -757,6 +771,10 @@
                 
                 resetForRetry(); 
                 answerBtn.disabled = false; // 答錯後仍可看答案
+
+                // 答錯後啟用手動跳轉按鈕
+                startBtn.textContent = '下一個單字/跳過';
+                startBtn.disabled = false; 
                 
                 // 1.5 秒後自動重唸單字
                 setTimeout(() => readWord(currentWord), 1500); 
@@ -780,12 +798,13 @@
         }
 
         /**
-         * 顯示答案 (流程優化 V3.0.3)
+         * 顯示答案 (流程優化 V3.0.5)
          */
         function showAnswer() {
             checkBtn.disabled = true;
             repeatBtn.disabled = true;
             answerBtn.disabled = true; 
+            startBtn.disabled = true; // 看答案期間鎖定跳過按鈕
 
             const word = currentWord;
             const pureWord = word.replace(/\s/g, '');
@@ -809,12 +828,12 @@
                  errorList.push(currentWordData);
             }
 
-            // 修正：看答案後等待 1.5 秒，但 **不自動跳轉**
+            // V3.0.5 修正：看答案後等待 1.5 秒，啟用手動跳轉按鈕
             utterThis.onend = () => {
                 setTimeout(() => {
-                    feedbackMessage.textContent += ' (請點擊「下一個單字」繼續)';
-                    startBtn.textContent = '下一個單字';
-                    startBtn.disabled = false; // 啟用跳轉按鈕
+                    feedbackMessage.textContent += ' (請點擊「下一個單字/跳過」繼續)';
+                    startBtn.textContent = '下一個單字/跳過';
+                    startBtn.disabled = false; // 啟用手動跳轉按鈕
                     wordIndex++; // 索引已增加，等待 loadNextWord
                 }, 1500); 
             };
@@ -848,8 +867,6 @@
             checkSelectionStatus(); 
         };
         
-        // 將 startBtn 的點擊事件導向新的處理函數
-        // startBtn.onclick = handleStartNext; 
         repeatBtn.onclick = () => readWord(currentWord); 
         checkBtn.onclick = checkSpelling;
         
