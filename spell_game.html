@@ -2,13 +2,12 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>英文聽寫練習機 (平板優化 V3.0.6)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>英文聽寫練習機 (平板優化 V3.0.7)</title>
     <style>
         /* ------------------- CSS 樣式 ------------------- */
         body {
             font-family: 'Arial', sans-serif;
-            /* 恢復原始純淨的白色背景 */
             background-color: #f7f7f7; 
             display: flex;
             flex-direction: column;
@@ -26,7 +25,6 @@
 
         #game-container {
             width: 95%; 
-            /* 【橫向優化】增加最大寬度，適用 iPad 橫屏 */
             max-width: 900px; 
             border: 5px solid #a4e2ff; 
             background-color: #fff;
@@ -37,7 +35,6 @@
         }
 
         h2 {
-            /* 標題帶有版本號 */
             color: #4a90e2; 
         }
 
@@ -236,7 +233,7 @@
 <body>
 
     <div id="game-container">
-        <h2>☁️ 英文聽寫練習機 V3.0.6</h2>
+        <h2>☁️ 英文聽寫練習機 V3.0.7</h2>
         
         <div id="review-status"></div>
 
@@ -574,7 +571,7 @@
         // --- 選擇器與單字載入 ---
         
         function selectGrade(clickedButton) {
-            if (isGameActive) return; // 遊戲中鎖定
+            // V3.0.7 修正：即使遊戲運行中，仍然允許切換年級來查看單元列表，但不允許選擇單元
             const grade = clickedButton.dataset.grade;
             document.querySelectorAll('.grade-btn').forEach(btn => btn.classList.remove('selected'));
             currentGrade = grade;
@@ -584,16 +581,28 @@
 
         function loadUnits(grade) {
             unitButtonsContainer.innerHTML = '';
-            selectedUnits = []; 
+            // 如果遊戲正在進行，則不清除已選擇的單元，也不允許點擊
+            if (!isGameActive) {
+                selectedUnits = []; 
+            }
             
             if (grade && allWordUnits[grade]) {
                 const units = allWordUnits[grade];
                 Object.keys(units).forEach(unit => {
                     const button = document.createElement('button');
                     button.className = 'unit-btn';
+                    // 如果這個單元在已選清單中，則標記為 selected
+                    if (selectedUnits.includes(unit)) {
+                         button.classList.add('selected');
+                    }
                     button.textContent = `${unit} (${units[unit].length})`; 
                     button.dataset.unit = unit; 
-                    button.onclick = toggleUnitSelection; 
+                    // 如果遊戲正在進行，則禁用單元按鈕
+                    if (isGameActive) {
+                        button.disabled = true;
+                    } else {
+                        button.onclick = toggleUnitSelection; 
+                    }
                     unitButtonsContainer.appendChild(button);
                 });
             } else {
@@ -626,7 +635,11 @@
                 hintDisplay.textContent = `已選擇 ${currentGrade} 的 ${selectedUnits.length} 個單元，點擊開始遊戲！`;
             } else if (currentGrade) {
                 startBtn.disabled = true;
-                hintDisplay.textContent = '請選擇要練習的課別！';
+                if (isGameActive) {
+                    hintDisplay.textContent = `[遊戲進行中] 當前 ${currentGrade} 單元：${selectedUnits.join(', ')}`;
+                } else {
+                    hintDisplay.textContent = '請選擇要練習的課別！';
+                }
             } else {
                 startBtn.disabled = true;
                 hintDisplay.textContent = '請先選擇年級！';
@@ -639,14 +652,14 @@
          * 處理「開始遊戲」或「下一個單字」的邏輯
          */
         function handleStartNext() {
-            // 只有在流程停滯時 (答錯/看答案後) 點擊 Next，才真正執行跳轉
+            // 如果遊戲尚未開始
             if (!isGameActive) {
-                startGameSetup(); // 第一次開始遊戲
-            } else if (startBtn.textContent === '下一個單字/跳過' && wordIndex <= currentWordList.length) {
-                // 遊戲進行中，但還沒答完，則視為跳過
+                startGameSetup(); 
+            } else if (startBtn.textContent.includes('跳過') && wordIndex < currentWordList.length) {
+                // 如果按鈕是「跳過」且遊戲還沒結束
                 skipCurrentWord();
-            } else {
-                // 如果是「下一個單字」模式，代表上一個單字已經處理完 (答錯或看答案)
+            } else if (startBtn.textContent === '下一個單字' && wordIndex <= currentWordList.length) {
+                 // 如果是「下一個單字」模式 (答錯或看答案後)
                  loadNextWord();
             }
         }
@@ -670,7 +683,9 @@
             wordIndex = 0;
             isGameActive = true; 
             
-            // 設置為跳過/下一個
+            // 遊戲開始後，鎖定單元選擇介面
+            document.querySelectorAll('.unit-btn').forEach(btn => btn.disabled = true);
+            
             startBtn.textContent = '下一個單字/跳過';
             loadNextWord();
         }
@@ -711,6 +726,7 @@
             repeatBtn.disabled = false;
             answerBtn.disabled = false; 
             checkBtn.disabled = true;
+            
             // 遊戲進行中時，按鈕顯示為「下一個單字/跳過」
             startBtn.textContent = '下一個單字/跳過'; 
             startBtn.disabled = false;
@@ -770,13 +786,16 @@
             errorList = [];
             inputArea.innerHTML = '';
             
+            // 啟用單元按鈕
+            document.querySelectorAll('.unit-btn').forEach(btn => btn.disabled = false);
+            
             // 鎖定所有控制按鈕，只保留 startBtn
             checkBtn.disabled = true;
             answerBtn.disabled = true;
             repeatBtn.disabled = true;
             
             reviewStatus.textContent = '';
-            startBtn.textContent = '重新開始`;
+            startBtn.textContent = '重新開始';
             
             hintDisplay.textContent = '👏 恭喜您！所有單字測驗和複習都已完成！';
             feedbackMessage.textContent = '請選擇新的單元開始下一輪練習。';
@@ -857,7 +876,7 @@
         }
 
         /**
-         * 檢查拼寫 (流程優化 V3.0.5)
+         * 檢查拼寫 (V3.0.5/V3.0.7 修正)
          */
         function checkSpelling() {
             checkBtn.disabled = true;
@@ -935,7 +954,7 @@
         }
 
         /**
-         * 顯示答案 (流程優化 V3.0.5)
+         * 顯示答案 (V3.0.5/V3.0.7 修正)
          */
         function showAnswer() {
             checkBtn.disabled = true;
