@@ -3,16 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>大耳狗聽寫樂園 - Cinnamoroll Edition</title>
+    <title>英文聽寫練習機 (可愛 Emoji 版)</title>
     <style>
         /* ------------------- CSS 樣式 ------------------- */
         body {
             font-family: 'Arial', sans-serif;
-            /* 1. 【背景圖】使用外部圖片連結作為背景 */
-            background-image: url('https://i.imgur.com/KxX9I8I.png'); /* 淺藍色雲朵天空圖 */
-            background-size: cover; /* 覆蓋整個頁面 */
-            background-attachment: fixed; /* 背景不隨捲動軸移動 */
-            background-color: #e9f7ff; /* 作為圖片載入失敗時的後備顏色 */
+            /* 1. 【恢復原始】使用純淨的白色背景 */
+            background-color: #f7f7f7; 
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -23,14 +20,19 @@
         #game-container {
             width: 90%;
             max-width: 650px;
-            /* 淺藍色邊框，增加可愛感 */
+            /* 恢復成中性邊框，藍色主題保留 */
             border: 5px solid #a4e2ff; 
-            /* 將容器設為半透明白色，讓背景圖透出來 */
-            background-color: rgba(255, 255, 255, 0.9); 
+            background-color: #fff;
             border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             padding: 30px;
             text-align: center;
+        }
+
+        /* 標題調整 */
+        h2 {
+            /* 保留 Emoji 標題 */
+            color: #4a90e2; /* 藍色主題 */
         }
 
         /* 選擇介面 */
@@ -138,9 +140,9 @@
         }
 
         .key {
-            /* 【大耳狗風格】鍵盤色：淺天空藍 */
+            /* 鍵盤色保留淺天空藍 */
             background-color: #a4e2ff; 
-            color: #333; /* 讓字體更清楚 */
+            color: #333; 
             border: none;
             padding: 12px 0;
             font-size: 22px;
@@ -151,7 +153,7 @@
         }
 
         .key:active {
-            background-color: #79c5f0; /* 按下時更深一點 */
+            background-color: #79c5f0; 
         }
         
         /* DELETE 鍵 */
@@ -232,7 +234,7 @@
 <body>
 
     <div id="game-container">
-        <h2>☁️ 大耳狗聽寫樂園 🩷</h2>
+        <h2>☁️ 英文聽寫練習機 🩷</h2>
         
         <div id="review-status"></div>
 
@@ -266,7 +268,7 @@
     <script>
         // ------------------- JavaScript 邏輯 -------------------
 
-        // 2. 【修復 Bug】移除提示中的英文小寫答案
+        // 1. 單字庫 (提示已修正，移除英文答案)
         const allWordUnits = {
             "G1": {
                 "U1": [{ word: "HE IS", hint: "他是/她們是" }, { word: "I AM", hint: "我是" }, { word: "NAME", hint: "名字" }, { word: "SHE IS", hint: "她是" }, { word: "THE", hint: "這個/那個" }, { word: "THIS", hint: "這個" }, { word: "YOU ARE", hint: "你是/您是" }, { word: "WHAT", hint: "什麼" }],
@@ -347,7 +349,7 @@
                 Object.keys(units).forEach(unit => {
                     const button = document.createElement('button');
                     button.className = 'unit-btn';
-                    // 【大耳狗風格】在單元按鈕前加 Emoji
+                    // 保留可愛的 Emoji
                     button.textContent = `🌸 ${unit} (${units[unit].length})`; 
                     button.dataset.unit = unit; 
                     button.onclick = toggleUnitSelection; 
@@ -396,11 +398,13 @@
         
         // --- 遊戲邏輯函數 ---
         
-        // 3. 【語音優化】設定發音引擎，優先選擇音高較高的聲音
+        /**
+         * 語音引擎設置：優先選擇音高較高的英文聲音
+         */
         function setEnglishVoice() {
             if (englishVoice) return;
             const voices = synth.getVoices();
-            // 篩選出 US/GB 英文女聲，如果找不到，就找第一個英文聲音
+            // 篩選出 US/GB 英文聲音，如果找不到，就找第一個英文聲音
             englishVoice = voices.find(voice => 
                 (voice.lang.startsWith('en-US') || voice.lang.startsWith('en-GB')) && 
                 voice.name.includes('Female')
@@ -423,14 +427,14 @@
             utterThis.voice = englishVoice;
             utterThis.lang = 'en-US'; 
             utterThis.rate = rate; 
-            utterThis.pitch = pitch; // 新增音高設定
+            utterThis.pitch = pitch; // 音高設定
             synth.speak(utterThis);
             return utterThis;
         }
 
         /**
          * 朗讀單字，直接唸出完整的詞組。
-         * 調整語速和音高，讓聲音更像小朋友/女老師。
+         * 使用優化後的語速 (0.9) 和音高 (1.2)。
          * @param {string} word 實際要拼寫的單字/詞組
          */
         function readWord(word) {
@@ -438,7 +442,7 @@
             
             let speechWord = word; 
             
-            // 4. 【發音修正】將語速調為 0.9，音高調高到 1.2
+            // 2. 【語音優化】使用 0.9 語速和 1.2 音高
             const utterThis = speak(speechWord, 0.9, 1.2); 
             utterThis.onend = () => {
                 repeatBtn.disabled = false;
@@ -511,6 +515,7 @@
             feedbackMessage.textContent = '';
             
             const unitInfo = isReviewMode ? "複習題" : `第 ${wordIndex + 1}/${currentWordList.length} 題`;
+            // 3. 【提示修復】顯示純中文提示
             hintDisplay.textContent = `[${unitInfo}] ${wordData.hint}`;
 
             // 處理空格：將所有字元 (包括空格) 轉為陣列
@@ -606,7 +611,7 @@
             const pureWord = currentWord.replace(/\s/g, ''); 
 
             if (playerWord === pureWord) {
-                // 【大耳狗風格】成功反饋替換為可愛的棒棒糖
+                // 保留可愛的成功反饋 Emoji
                 feedbackMessage.textContent = '🍭 太棒了！拼寫完全正確！'; 
                 // 語音報讀正確答案 (使用較快的 1.0 語速和標準 1.0 音高)
                 speak('Excellent! The word is ' + currentWord, 1.0, 1.0);
@@ -674,6 +679,7 @@
             }
             
             feedbackMessage.textContent = `答案是 ${word}。這個單字已加入待複習清單！`;
+            // 語音報讀答案
             speak(`The correct word is ${word}`);
             
             const currentWordData = currentWordList[wordIndex];
