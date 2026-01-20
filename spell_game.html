@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>英文拼字遊戲 Ver 3.2.0</title>
+    <title>英文拼字遊戲 Ver 3.2.2</title>
     <style>
         :root {
             --pink: #FFD1DC;
@@ -13,87 +13,61 @@
             --bg: #FFFBFA;
         }
 
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-            font-family: "PingFang TC", sans-serif;
-            color: var(--text);
-        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: sans-serif; }
 
         body {
-            margin: 0; padding: 0;
-            background-color: var(--bg);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden; /* 禁止整頁捲動 */
+            margin: 0; padding: 0; background-color: var(--bg);
+            height: 100vh; display: flex; flex-direction: column; overflow: hidden;
         }
 
-        /* 頂部導覽與控制區 (壓縮高度) */
+        /* 頂部控制列 */
         .nav-header {
-            width: 100%; background: white; padding: 8px 12px;
+            width: 100%; background: white; padding: 5px 10px;
             display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 3px solid var(--pink);
-            flex-shrink: 0;
+            border-bottom: 3px solid var(--pink); flex-shrink: 0;
         }
 
         .btn-home {
-            text-decoration: none; background: var(--yellow); padding: 6px 12px;
-            border-radius: 20px; font-weight: bold; font-size: 0.85rem;
-            border: 2px solid var(--text);
+            text-decoration: none; background: var(--yellow); padding: 5px 10px;
+            border-radius: 15px; font-weight: bold; font-size: 0.8rem;
+            border: 2px solid var(--text); color: var(--text);
         }
 
-        .selectors {
-            display: flex; gap: 5px;
-        }
+        .selectors { display: flex; gap: 4px; }
+        select { padding: 3px; border-radius: 6px; border: 1px solid var(--pink); font-size: 0.8rem; color: var(--text); }
 
-        select {
-            padding: 4px; border-radius: 8px; border: 1px solid var(--pink);
-            font-size: 0.85rem; background: white;
-        }
-
-        /* 遊戲核心區 (自動填滿剩餘空間) */
+        /* 遊戲核心區 */
         #game-container {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center; /* 垂直置中 */
-            align-items: center;
-            padding: 10px;
+            flex-grow: 1; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; padding: 5px;
         }
 
-        /* 題目字卡 */
         .word-card {
-            background: white; border: 5px solid var(--yellow);
-            border-radius: 25px; padding: 15px; width: 100%; max-width: 350px;
-            text-align: center; box-shadow: 0 5px 0 var(--yellow);
-            margin-bottom: 20px;
+            background: white; border: 4px solid var(--yellow);
+            border-radius: 20px; padding: 10px; width: 95%; max-width: 350px;
+            text-align: center; box-shadow: 0 4px 0 var(--yellow); margin-bottom: 10px;
         }
 
-        #chinese-hint { font-size: 1.4rem; font-weight: bold; margin-bottom: 5px; }
-        #word-display { font-size: 2.5rem; font-weight: bold; letter-spacing: 3px; color: var(--pink); min-height: 3.5rem; }
+        #chinese-hint { font-size: 1.2rem; font-weight: bold; color: var(--text); margin-bottom: 3px; }
+        #word-display { font-size: 2rem; font-weight: bold; letter-spacing: 2px; color: var(--pink); min-height: 2.5rem; }
 
-        /* 虛擬鍵盤 */
+        /* 鍵盤區 */
         .keyboard {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 6px;
-            width: 100%;
-            max-width: 500px;
+            display: grid; grid-template-columns: repeat(7, 1fr);
+            gap: 4px; width: 100%; max-width: 450px; padding: 0 5px;
         }
 
         .key {
-            background: white; border: 2px solid var(--blue);
-            border-radius: 10px; padding: 12px 0;
-            font-size: 1.2rem; font-weight: bold;
-            box-shadow: 0 3px 0 var(--blue);
-            cursor: pointer; text-align: center;
+            background: white; border: 1.5px solid var(--blue);
+            border-radius: 6px; padding: 8px 0;
+            font-size: 1rem; font-weight: bold; color: var(--text);
+            box-shadow: 0 2.5px 0 var(--blue); cursor: pointer; text-align: center;
         }
 
         .key:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--blue); }
         .key.back { background: var(--pink); border-color: #ffb8d1; color: white; }
 
-        .version-tag { position: fixed; bottom: 5px; right: 10px; font-size: 10px; opacity: 0.4; }
+        .version-tag { position: fixed; bottom: 5px; right: 10px; font-size: 10px; opacity: 0.4; color: var(--text); }
     </style>
 </head>
 <body>
@@ -101,46 +75,60 @@
     <div class="nav-header">
         <a href="https://liliancir0125.github.io/Rumi_Study_Hall/" class="btn-home">🏠 回大廳</a>
         <div class="selectors">
-            <select id="gradeSelect" onchange="loadWords()">
-                <option value="3">三年級</option>
-                <option value="4">四年級</option>
+            <select id="grade" onchange="initGame()">
+                <option value="G1">G1 一年級</option>
+                <option value="G2">G2 二年級</option>
             </select>
-            <select id="bookSelect" onchange="loadWords()">
-                <option value="1">第一冊</option>
-                <option value="2">第二冊</option>
-            </select>
+            <select id="unit" onchange="initGame()">
+                </select>
         </div>
     </div>
 
     <div id="game-container">
         <div class="word-card">
             <div id="chinese-hint">載入中...</div>
-            <div id="word-display">_ _ _</div>
+            <div id="word-display"></div>
         </div>
-
-        <div class="keyboard" id="keyboard">
-            </div>
+        <div class="keyboard" id="keyboard"></div>
     </div>
 
-    <div class="version-tag">Ver. 3.2.0</div>
+    <div class="version-tag">Ver. 3.2.2</div>
 
     <script>
-        // 假設的單字資料
-        const words = [
-            {en: 'APPLE', ch: '蘋果'},
-            {en: 'DOG', ch: '小狗'},
-            {en: 'CAT', ch: '小貓'},
-            {en: 'BIRD', ch: '小鳥'}
-        ];
+        // 單字庫架構：G1-U1, G1-U2 ... 直到 G2-U10
+        const wordData = {
+            "G1-U1": [{en: "APPLE", ch: "蘋果"}, {en: "ANT", ch: "螞蟻"}],
+            "G1-U2": [{en: "BALL", ch: "球"}, {en: "BEAR", ch: "熊"}],
+            "G1-U3": [{en: "CAT", ch: "貓"}, {en: "CUP", ch: "杯子"}],
+            // ... 你可以依照這個格式繼續往下填
+            "G2-U1": [{en: "DOG", ch: "狗"}, {en: "DUCK", ch: "鴨子"}],
+            "G2-U10": [{en: "ZEBRA", ch: "斑馬"}]
+        };
 
         let currentWord = {};
         let userInput = "";
 
-        function loadWords() {
-            currentWord = words[Math.floor(Math.random() * words.length)];
+        // 初始化單字選擇器 (U1-U10)
+        function setupSelectors() {
+            const unitSelect = document.getElementById('unit');
+            for(let i=1; i<=10; i++) {
+                let opt = document.createElement('option');
+                opt.value = "U" + i;
+                opt.innerText = "Unit " + i;
+                unitSelect.appendChild(opt);
+            }
+        }
+
+        function initGame() {
+            const grade = document.getElementById('grade').value;
+            const unit = document.getElementById('unit').value;
+            const key = `${grade}-${unit}`;
+            const list = wordData[key] || [{en: "EMPTY", ch: "尚未輸入單字"}];
+            
+            currentWord = list[Math.floor(Math.random() * list.length)];
             userInput = "";
             render();
-            speak(currentWord.en);
+            if(currentWord.en !== "EMPTY") speak(currentWord.en);
         }
 
         function render() {
@@ -151,14 +139,15 @@
             }
             document.getElementById('word-display').innerText = display;
 
-            if(userInput === currentWord.en) {
-                setTimeout(() => { alert("答對了！"); loadWords(); }, 300);
+            if(userInput === currentWord.en && userInput !== "") {
+                setTimeout(() => { alert("⭐ 答對了！"); initGame(); }, 300);
             }
         }
 
-        function pressKey(letter) {
+        function pressKey(l) {
             if(userInput.length < currentWord.en.length) {
-                userInput += letter;
+                userInput += l;
+                speak(l);
                 render();
             }
         }
@@ -170,24 +159,31 @@
 
         function speak(t) {
             const ut = new SpeechSynthesisUtterance(t);
-            ut.lang = 'en-US';
+            ut.lang = 'en-US'; ut.rate = 0.9;
             window.speechSynthesis.speak(ut);
         }
 
-        // 產生 A-Z 鍵盤
-        const kbd = document.getElementById('keyboard');
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(l => {
-            const b = document.createElement('div');
-            b.className = 'key'; b.innerText = l;
-            b.onclick = () => pressKey(l);
-            kbd.appendChild(b);
-        });
-        const back = document.createElement('div');
-        back.className = 'key back'; back.innerText = "←";
-        back.onclick = backspace;
-        kbd.appendChild(back);
+        // 建立鍵盤
+        function createKeyboard() {
+            const kbd = document.getElementById('keyboard');
+            kbd.innerHTML = "";
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(l => {
+                const b = document.createElement('div');
+                b.className = 'key'; b.innerText = l;
+                b.onclick = () => pressKey(l);
+                kbd.appendChild(b);
+            });
+            const del = document.createElement('div');
+            del.className = 'key back'; del.innerText = "←";
+            del.onclick = backspace;
+            kbd.appendChild(del);
+        }
 
-        window.onload = loadWords;
+        window.onload = () => {
+            setupSelectors();
+            createKeyboard();
+            initGame();
+        };
     </script>
 </body>
 </html>
