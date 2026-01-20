@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>英文拼字遊戲 Ver 3.3.2</title>
+    <title>英文拼字遊戲 Ver 3.3.3</title>
     <style>
         :root { --pink: #FFD1DC; --blue: #BFEAF2; --yellow: #FFF4BD; --text: #5d4037; --bg: #FFFBFA; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: sans-serif; }
         body { margin: 0; padding: 0; background-color: var(--bg); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* 頂部導覽列 */
+        /* 頂部導覽列：僅搬移位置，不改邏輯 */
         .nav-header {
             width: 100%; background: white; padding: 5px 15px;
             display: flex; justify-content: space-between; align-items: center;
@@ -23,7 +23,7 @@
         .selectors { display: flex; gap: 8px; }
         select { padding: 4px; border-radius: 8px; border: 1px solid var(--pink); font-size: 0.9rem; color: var(--text); }
 
-        /* 遊戲區塊 */
+        /* 遊戲區塊：完全回歸 3.1.2 比例 */
         #game-container {
             flex-grow: 1; display: flex; flex-direction: column;
             justify-content: center; align-items: center; padding: 10px;
@@ -37,7 +37,7 @@
         #chinese-hint { font-size: 1.5rem; font-weight: bold; color: var(--text); margin-bottom: 10px; }
         #word-display { font-size: 2.8rem; font-weight: bold; letter-spacing: 4px; color: var(--pink); min-height: 3.5rem; }
 
-        /* 鍵盤 */
+        /* 鍵盤：完全回歸 3.1.2 樣式 */
         .keyboard {
             display: grid; grid-template-columns: repeat(7, 1fr);
             gap: 6px; width: 100%; max-width: 500px; padding: 0 5px;
@@ -51,8 +51,8 @@
         .key:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--blue); }
         .key.back { background: var(--pink); border-color: #ffb8d1; color: white; }
 
-        /* 版本號區域 */
-        .version-info { position: fixed; bottom: 5px; right: 10px; font-size: 10px; opacity: 0.4; color: var(--text); }
+        /* 版本號 */
+        .version-tag { position: fixed; bottom: 5px; right: 10px; font-size: 10px; opacity: 0.4; color: var(--text); }
     </style>
 </head>
 <body>
@@ -74,9 +74,10 @@
         <div class="keyboard" id="keyboard"></div>
     </div>
 
-    <div class="version-info">Ver. 3.3.2</div>
+    <div class="version-tag">Ver. 3.3.3 (基於 3.1.2)</div>
 
     <script>
+        // 使用你提供的完整單字資料
         const allWordUnits = {
             "G1": {
                 "U1": [{word:"HE IS",hint:"他是"},{word:"I AM",hint:"我是"},{word:"NAME",hint:"名字"},{word:"SHE IS",hint:"她是"},{word:"THE",hint:"這個"},{word:"THIS",hint:"這個"},{word:"YOU ARE",hint:"你是"},{word:"WHAT",hint:"什麼"}],
@@ -97,8 +98,8 @@
                 "U4": [{word:"TIRED",hint:"疲倦的"},{word:"HAPPY",hint:"快樂的"},{word:"SAD",hint:"悲傷的"},{word:"BORED",hint:"無聊的"},{word:"ANGRY",hint:"生氣的"},{word:"CRAZY",hint:"瘋狂的"},{word:"HUNGRY",hint:"肚子餓的"},{word:"THIRSTY",hint:"口渴的"},{word:"SICK",hint:"生病的"},{word:"SCARED",hint:"害怕的"}],
                 "U5": [{word:"DECEMBER",hint:"十二月"},{word:"MONTH",hint:"月"},{word:"JANUARY",hint:"一月"},{word:"FEBRUARY",hint:"二月"},{word:"MARCH",hint:"三月"},{word:"APRIL",hint:"四月"},{word:"MAY",hint:"五月"},{word:"JUNE",hint:"六月"},{word:"JULY",hint:"七月"},{word:"AUGUST",hint:"八月"},{word:"SEPTEMBER",hint:"九月"},{word:"OCTOBER",hint:"十月"},{word:"NOVEMBER",hint:"十一月"}],
                 "U6": [{word:"BIRTHDAY",hint:"生日"},{word:"GIFT",hint:"禮物"},{word:"THANKS",hint:"謝謝"},{word:"FROM",hint:"從.../來自"},{word:"US",hint:"我們 (受格)"},{word:"COMPUTER",hint:"電腦"},{word:"GAME",hint:"遊戲"},{word:"ME",hint:"我 (受格)"},{word:"YOU",hint:"你(受格)"},{word:"HIM",hint:"他 (受格)"},{word:"THEM",hint:"他們 (受格)"},{word:"TALK",hint:"說話"},{word:"SING",hint:"唱歌"},{word:"SONG",hint:"歌曲"},{word:"STORY",hint:"故事"}],
-                "U7": [{word:"FAMILY",hint:"家庭"},{word:"BROTHER",hint:"兄弟或弟"},{word:"SISTER",hint:"姊姊或妹"},{word:"PEOPLE",hint:"人們(當複數用)"},{word:"FATHER",hint:"父親"},{word:"AUNT",hint:"姑姑或阿姨"},{word:"MOTHER",hint:"母親"},{word:"UNCLE",hint:"伯父或叔叔"},{word:"COUSIN",hint:"堂(表)兄、弟、姊、妹"},{word:"GRANDFATHER",hint:"祖父"},{word:"GRANDMOM",hint:"祖母"},{word:"MANY",hint:"很多的"},{word:"BECAUSE",hint:"因為"}],
-                "U8": [{word:"AFRAID",hint:"害怕的"},{word:"PET",hint:"寵物"},{word:"DOG",hint:"狗"},{word:"BUT",hint:"但是"},{word:"LIKE",hint:"喜歡"},{word:"CAT",hint:"貓"},{word:"ANIMAL",hint:"動物"},{word:"HAMSTER",hint:"倉鼠"},{word:"TURTLE",hint:"烏龜"},{word:"SNAKE",hint:"蛇"},{word:"FISH",hint:"魚"},{word:"BIRD",hint:"鳥"},{word:"LIZARD",hint:"蜥蜴"}],
+                "U7": [{word:"FAMILY",hint:"家庭"},{word:"BROTHER",hint:"兄弟或弟"},{word:"SISTER",hint:"姊姊或妹"},{word:"PEOPLE",hint:"人們(當複數用)"},{word:"FATHER",hint:"父親"},{word:"AUNT",hint:"姑姑或阿姨"},{word:"MOTHER",hint:"母親"},{word:"UNCLE",hint:"伯父或叔叔"},{word:"COUSIN",hint:"堂(表)兄、弟、姊、妹"},{word:"GRANDFATHER",hint:"祖父"},{word:"GRANDMOTHER",hint:"祖母"},{word:"MANY",hint:"很多的"},{word:"BECAUSE",hint:"因為"}],
+                "U8": [{word:"AFRAID",hint:"害怕的"},{word:"PET",hint:"寵物"},{word:"DOG",hint:"狗"},{word:"BUT",hint:"但是"},{word:"LIKE/LIKES",hint:"喜歡"},{word:"CAT",hint:"貓"},{word:"ANIMAL",hint:"動物"},{word:"HAMSTER",hint:"倉鼠"},{word:"TURTLE",hint:"烏龜"},{word:"SNAKE",hint:"蛇"},{word:"FISH",hint:"魚"},{word:"BIRD",hint:"鳥"},{word:"LIZARD",hint:"蜥蜴"}],
                 "U9": [{word:"KITCHEN",hint:"廚房"},{word:"DOING",hint:"做"},{word:"BEDROOM",hint:"臥室"},{word:"BATHROOM",hint:"浴室"},{word:"DINING ROOM",hint:"飯廳"},{word:"STUDY",hint:"書房"},{word:"LIVING ROOM",hint:"客廳"},{word:"READING",hint:"閱讀"},{word:"COOKING",hint:"煮飯"},{word:"WATCHING",hint:"看"},{word:"TV",hint:"電視"},{word:"SLEEPING",hint:"睡覺"},{word:"EATING",hint:"吃"},{word:"WASHING",hint:"洗"},{word:"WRITING",hint:"寫"}],
                 "U10": [{word:"DESK",hint:"書桌"},{word:"UNDER",hint:"在...下面"},{word:"BED",hint:"床"},{word:"TABLE",hint:"桌子"},{word:"CLOSET",hint:"衣櫥"},{word:"BATHTUB",hint:"浴缸"},{word:"SINK",hint:"水槽"},{word:"CHAIR",hint:"椅子"},{word:"REFRIGERATOR",hint:"冰箱"},{word:"STOVE",hint:"火爐"},{word:"SOFA",hint:"沙發"},{word:"BESIDE",hint:"在...旁邊"},{word:"PUT",hint:"放"}]
             }
@@ -124,27 +125,43 @@
         function render() {
             document.getElementById('chinese-hint').innerText = currentWord.hint;
             let d = ""; const target = currentWord.word.toUpperCase();
+            // 3.1.2 原始邏輯：直接處理字元，包含空格
             for(let i=0; i<target.length; i++) {
-                if(target[i] === " ") d += "&nbsp;&nbsp;";
-                else d += (userInput[i] || "_") + " ";
+                if(target[i] === " ") {
+                    d += "&nbsp;&nbsp;";
+                } else {
+                    d += (userInput[i] || "_") + " ";
+                }
             }
             document.getElementById('word-display').innerHTML = d;
-            if(userInput.replace(/ /g,"") === target.replace(/ /g,"")) {
-                setTimeout(() => { alert("⭐ 答對了！"); initGame(); }, 300);
+            
+            // 檢查是否拼對
+            if(userInput.length === target.length) {
+                if(userInput.toUpperCase() === target) {
+                    setTimeout(() => { alert("⭐ 答對了！"); initGame(); }, 300);
+                }
             }
         }
 
         function pressKey(l) {
             const target = currentWord.word.toUpperCase();
             if(userInput.length < target.length) {
-                if(target[userInput.length] === " ") userInput += " "; 
-                userInput += l; speak(l); render();
+                // 如果當前位置是空格，自動補上空格再接字母
+                if(target[userInput.length] === " ") {
+                    userInput += " ";
+                }
+                userInput += l;
+                speak(l);
+                render();
             }
         }
 
         function backspace() {
-            if(userInput.endsWith(" ")) userInput = userInput.slice(0, -2);
-            else userInput = userInput.slice(0, -1);
+            if(userInput.endsWith(" ")) {
+                userInput = userInput.slice(0, -2);
+            } else {
+                userInput = userInput.slice(0, -1);
+            }
             render();
         }
 
@@ -154,6 +171,7 @@
             window.speechSynthesis.speak(ut);
         }
 
+        // 建立鍵盤
         const kbd = document.getElementById('keyboard');
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(l => {
             const b = document.createElement('div'); b.className = 'key'; b.innerText = l;
