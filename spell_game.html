@@ -3,65 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>英文拼字遊戲 Ver 3.3.0</title>
+    <title>英文拼字遊戲 Ver 3.3.1</title>
     <style>
-        :root { --pink: #FFD1DC; --blue: #BFEAF2; --yellow: #FFF4BD; --text: #5d4037; --bg: #FFFBFA; }
+        :root {
+            --pink: #FFD1DC;
+            --blue: #BFEAF2;
+            --yellow: #FFF4BD;
+            --text: #5d4037;
+            --bg: #FFFBFA;
+        }
+
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: sans-serif; }
-        body { margin: 0; padding: 0; background-color: var(--bg); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* 導覽列 */
+        body {
+            margin: 0; padding: 0; background-color: var(--bg);
+            height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+        }
+
+        /* 頂部導覽列：回大廳與選單移至右上 */
         .nav-header {
-            width: 100%; background: white; padding: 10px 15px;
+            width: 100%; background: white; padding: 5px 15px;
             display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 3px solid var(--pink); flex-shrink: 0;
+            border-bottom: 2.5px solid var(--pink); flex-shrink: 0;
         }
+
         .btn-home {
-            text-decoration: none; background: var(--yellow); padding: 8px 16px;
-            border-radius: 20px; font-weight: bold; border: 2px solid var(--text); color: var(--text);
-        }
-        .current-level-tag { font-weight: bold; color: var(--text); font-size: 1rem; }
-
-        /* 主舞台 */
-        #main-container { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; }
-        h1 { font-size: 2.2rem; color: var(--text); margin: 0 0 20px 0; text-shadow: 2px 2px 0 var(--pink); }
-
-        /* 選關畫面 (隱藏時 display: none) */
-        .menu-overlay { display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%; }
-        .grade-btns { display: flex; gap: 20px; }
-        .btn-grade { 
-            padding: 20px 40px; font-size: 1.5rem; font-weight: bold; border-radius: 15px;
-            border: 3px solid var(--text); background: white; cursor: pointer;
-        }
-        .btn-grade.active { background: var(--blue); }
-
-        .unit-grid { 
-            display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; 
-            width: 100%; max-width: 500px;
-        }
-        .btn-unit {
-            padding: 15px 5px; background: white; border: 2.5px solid var(--pink);
-            border-radius: 10px; font-weight: bold; cursor: pointer; text-align: center;
+            text-decoration: none; background: var(--yellow); padding: 6px 15px;
+            border-radius: 15px; font-weight: bold; font-size: 0.9rem;
+            border: 2px solid var(--text); color: var(--text);
         }
 
-        /* 遊戲畫面 (隱藏時 display: none) */
-        #game-stage { display: none; flex-direction: column; align-items: center; width: 100%; }
+        .selectors { display: flex; gap: 8px; }
+        select { padding: 4px; border-radius: 8px; border: 1px solid var(--pink); font-size: 0.9rem; color: var(--text); }
+
+        /* 遊戲區塊：保留 3.1.2 的大標題與比例 */
+        #game-container {
+            flex-grow: 1; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; padding: 10px;
+        }
+
+        h1 { font-size: 2rem; margin: 0 0 15px 0; color: var(--text); text-shadow: 2px 2px 0 var(--pink); }
+
         .word-card {
-            background: white; border: 6px solid var(--yellow); border-radius: 25px;
-            padding: 20px; width: 100%; max-width: 350px; text-align: center;
-            box-shadow: 0 6px 0 var(--yellow); margin-bottom: 20px;
+            background: white; border: 6px solid var(--yellow);
+            border-radius: 25px; padding: 20px; width: 95%; max-width: 350px;
+            text-align: center; box-shadow: 0 5px 0 var(--yellow); margin-bottom: 20px;
         }
-        #ch-hint { font-size: 1.5rem; font-weight: bold; color: var(--text); margin-bottom: 10px; }
-        #word-display { font-size: 2.5rem; font-weight: bold; letter-spacing: 4px; color: var(--pink); min-height: 3.5rem; }
 
-        .keyboard { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; width: 100%; max-width: 500px; }
+        #chinese-hint { font-size: 1.5rem; font-weight: bold; color: var(--text); margin-bottom: 10px; }
+        #word-display { font-size: 2.8rem; font-weight: bold; letter-spacing: 4px; color: var(--pink); min-height: 3.5rem; }
+
+        /* 鍵盤：維持原樣 */
+        .keyboard {
+            display: grid; grid-template-columns: repeat(7, 1fr);
+            gap: 6px; width: 100%; max-width: 500px; padding: 0 5px;
+        }
+
         .key {
-            background: white; border: 2px solid var(--blue); border-radius: 10px;
-            padding: 12px 0; font-size: 1.2rem; font-weight: bold; color: var(--text);
+            background: white; border: 2px solid var(--blue);
+            border-radius: 10px; padding: 12px 0;
+            font-size: 1.2rem; font-weight: bold; color: var(--text);
             box-shadow: 0 3px 0 var(--blue); cursor: pointer; text-align: center;
         }
-        .key.back { background: var(--pink); border-color: #ffb8d1; color: white; }
 
-        .btn-reselect { margin-top: 15px; background: none; border: none; color: #999; text-decoration: underline; cursor: pointer; }
+        .key:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--blue); }
+        .key.back { background: var(--pink); border-color: #ffb8d1; color: white; }
 
         .version-tag { position: fixed; bottom: 5px; right: 10px; font-size: 10px; opacity: 0.4; }
     </style>
@@ -70,104 +76,113 @@
 
     <div class="nav-header">
         <a href="https://liliancir0125.github.io/Rumi_Study_Hall/" class="btn-home">🏠 回大廳</a>
-        <div id="level-display" class="current-level-tag">請選擇關卡</div>
+        <div class="selectors">
+            <select id="grade" onchange="initGame()">
+                <option value="G1">G1</option>
+                <option value="G2">G2</option>
+            </select>
+            <select id="unit" onchange="initGame()">
+                </select>
+        </div>
     </div>
 
-    <div id="main-container">
+    <div id="game-container">
         <h1>英文拼字遊戲</h1>
-
-        <div id="grade-menu" class="menu-overlay">
-            <div class="grade-btns">
-                <button class="btn-grade" onclick="selectGrade('G1')">G1</button>
-                <button class="btn-grade" onclick="selectGrade('G2')">G2</button>
-            </div>
+        <div class="word-card">
+            <div id="chinese-hint">載入中...</div>
+            <div id="word-display"></div>
         </div>
-
-        <div id="unit-menu" class="menu-overlay" style="display:none;">
-            <div class="unit-grid" id="unit-buttons"></div>
-            <button class="btn-reselect" onclick="resetMenu()">← 重選年級</button>
-        </div>
-
-        <div id="game-stage">
-            <div class="word-card">
-                <div id="ch-hint">載入中...</div>
-                <div id="word-display"></div>
-            </div>
-            <div class="keyboard" id="kbd"></div>
-            <button class="btn-reselect" onclick="resetMenu()">← 重新選關</button>
-        </div>
+        <div class="keyboard" id="keyboard"></div>
     </div>
 
-    <div class="version-tag">Ver. 3.3.0</div>
+    <div class="version-tag">Ver. 3.3.1</div>
 
     <script>
-        // 核心單字庫 (請維持你 3.1.2 的完整清單)
+        // 單字庫完全回歸原本結構
         const wordData = {
-            "G1-U1": [{en:"CAT", ch:"貓"}, {en:"ANT", ch:"螞蟻"}],
-            "G1-U2": [{en:"DOG", ch:"狗"}, {en:"BOX", ch:"盒子"}],
-            "G2-U1": [{en:"APPLE", ch:"蘋果"}, {en:"BIRD", ch:"鳥"}]
+            "G1-U1": [{en: "APPLE", ch: "蘋果"}, {en: "ANT", ch: "螞蟻"}],
+            "G1-U2": [{en: "BALL", ch: "球"}, {en: "BEAR", ch: "熊"}],
+            // ... 請填入你原本儲存的所有單字
+            "G2-U1": [{en: "DOG", ch: "狗"}, {en: "DUCK", ch: "鴨子"}]
         };
 
-        let selGrade = "", selUnit = "", currentWord = {}, userInput = "";
+        let currentWord = {};
+        let userInput = "";
 
-        function selectGrade(g) {
-            selGrade = g;
-            document.getElementById('grade-menu').style.display = 'none';
-            document.getElementById('unit-menu').style.display = 'flex';
-            const container = document.getElementById('unit-buttons');
-            container.innerHTML = "";
-            for(let i=1; i<=10; i++){
-                const b = document.createElement('button');
-                b.className = 'btn-unit'; b.innerText = "U" + i;
-                b.onclick = () => startGame(i);
-                container.appendChild(b);
+        function setupUnits() {
+            const select = document.getElementById('unit');
+            for (let i = 1; i <= 10; i++) {
+                const opt = document.createElement('option');
+                opt.value = "U" + i;
+                opt.innerText = "Unit " + i;
+                select.appendChild(opt);
             }
         }
 
-        function startGame(u) {
-            selUnit = "U" + u;
-            document.getElementById('unit-menu').style.display = 'none';
-            document.getElementById('game-stage').style.display = 'flex';
-            document.getElementById('level-display').innerText = `${selGrade} - ${selUnit}`;
-            initWord();
-        }
-
-        function resetMenu() {
-            selGrade = ""; selUnit = "";
-            document.getElementById('grade-menu').style.display = 'flex';
-            document.getElementById('unit-menu').style.display = 'none';
-            document.getElementById('game-stage').style.display = 'none';
-            document.getElementById('level-display').innerText = "請選擇關卡";
-        }
-
-        function initWord() {
-            const list = wordData[`${selGrade}-${selUnit}`] || [{en:"EMPTY", ch:"尚未輸入"}];
+        function initGame() {
+            const g = document.getElementById('grade').value;
+            const u = document.getElementById('unit').value;
+            const key = `${g}-${u}`;
+            const list = wordData[key] || [{en: "EMPTY", ch: "無單字"}];
+            
             currentWord = list[Math.floor(Math.random() * list.length)];
-            userInput = ""; render();
+            userInput = "";
+            render();
             if(currentWord.en !== "EMPTY") speak(currentWord.en);
         }
 
         function render() {
-            document.getElementById('ch-hint').innerText = currentWord.ch;
-            let d = ""; for(let i=0; i<currentWord.en.length; i++) d += (userInput[i] || "_") + " ";
-            document.getElementById('word-display').innerText = d;
+            document.getElementById('chinese-hint').innerText = currentWord.ch;
+            let display = "";
+            for(let i=0; i<currentWord.en.length; i++) {
+                display += (userInput[i] || "_") + " ";
+            }
+            document.getElementById('word-display').innerText = display;
+
             if(userInput === currentWord.en && userInput !== "") {
-                setTimeout(() => { alert("⭐ 答對了！"); initWord(); }, 300);
+                setTimeout(() => { alert("⭐ 答對了！"); initGame(); }, 300);
             }
         }
 
-        function pressKey(l) { if(userInput.length < currentWord.en.length){ userInput += l; speak(l); render(); } }
-        function backspace() { userInput = userInput.slice(0, -1); render(); }
-        function speak(t) { const ut = new SpeechSynthesisUtterance(t); ut.lang = 'en-US'; window.speechSynthesis.speak(ut); }
+        function pressKey(l) {
+            if(userInput.length < currentWord.en.length) {
+                userInput += l;
+                speak(l);
+                render();
+            }
+        }
 
-        // 建立鍵盤
-        const kbd = document.getElementById('kbd');
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(l => {
-            const b = document.createElement('div'); b.className = 'key'; b.innerText = l;
-            b.onclick = () => pressKey(l); kbd.appendChild(b);
-        });
-        const del = document.createElement('div'); del.className = 'key back'; del.innerText = "←";
-        del.onclick = backspace; kbd.appendChild(del);
+        function backspace() {
+            userInput = userInput.slice(0, -1);
+            render();
+        }
+
+        function speak(t) {
+            const ut = new SpeechSynthesisUtterance(t);
+            ut.lang = 'en-US'; ut.rate = 0.9;
+            window.speechSynthesis.speak(ut);
+        }
+
+        function createKeyboard() {
+            const kbd = document.getElementById('keyboard');
+            kbd.innerHTML = "";
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(l => {
+                const b = document.createElement('div');
+                b.className = 'key'; b.innerText = l;
+                b.onclick = () => pressKey(l);
+                kbd.appendChild(b);
+            });
+            const del = document.createElement('div');
+            del.className = 'key back'; del.innerText = "←";
+            del.onclick = backspace;
+            kbd.appendChild(del);
+        }
+
+        window.onload = () => {
+            setupUnits();
+            createKeyboard();
+            initGame();
+        };
     </script>
 </body>
 </html>
