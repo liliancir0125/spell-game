@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>英文拼字遊戲 Ver 3.1.3</title>
+    <title>英文拼字遊戲 Ver 3.1.4</title>
     <style>
         :root {
             --pink: #FFD1DC;
@@ -47,6 +47,7 @@
             margin: 10px 0;
             display: flex;
             gap: 10px;
+            justify-content: center;
         }
 
         select {
@@ -165,9 +166,10 @@
             </div>
     </div>
 
-    <div class="version-tag">Ver. 3.1.3</div>
+    <div class="version-tag">Ver. 3.1.4</div>
 
     <script>
+        // 1. 單字庫 - 已更新為你提供的版本
         const allWordUnits = {
             "G1": {
                 "U1": [{word:"HE IS",hint:"他是"},{word:"I AM",hint:"我是"},{word:"NAME",hint:"名字"},{word:"SHE IS",hint:"她是"},{word:"THE",hint:"這個"},{word:"THIS",hint:"這個"},{word:"YOU ARE",hint:"你是"},{word:"WHAT",hint:"什麼"}],
@@ -198,6 +200,7 @@
         let currentWord = {};
         let userInput = "";
 
+        // 初始化選單
         function setupUnits() {
             const unitSelect = document.getElementById('unit');
             unitSelect.innerHTML = "";
@@ -209,29 +212,37 @@
             }
         }
 
+        // 初始化遊戲
         function initGame() {
             const grade = document.getElementById('grade').value;
             const unit = document.getElementById('unit').value;
-            const list = allWordUnits[grade][unit];
-            currentWord = list[Math.floor(Math.random() * list.length)];
+            const wordList = allWordUnits[grade][unit];
+            
+            // 隨機選一個單字
+            currentWord = wordList[Math.floor(Math.random() * wordList.length)];
             userInput = "";
             render();
             speak(currentWord.word);
         }
 
+        // 渲染畫面
         function render() {
             document.getElementById('chinese-hint').innerText = currentWord.hint;
-            let display = "";
+            
+            let displayHTML = "";
             const target = currentWord.word.toUpperCase();
+            
             for (let i = 0; i < target.length; i++) {
                 if (target[i] === " ") {
-                    display += "&nbsp;&nbsp;";
+                    displayHTML += "&nbsp;&nbsp;";
                 } else {
-                    display += (userInput[i] || "_") + " ";
+                    const char = userInput[i] || "_";
+                    displayHTML += char + " ";
                 }
             }
-            document.getElementById('word-display').innerHTML = display;
+            document.getElementById('word-display').innerHTML = displayHTML;
 
+            // 檢查是否完成
             if (userInput.length === target.length) {
                 if (userInput.toUpperCase() === target) {
                     setTimeout(() => {
@@ -242,9 +253,11 @@
             }
         }
 
+        // 處理按鍵
         function pressKey(letter) {
             const target = currentWord.word.toUpperCase();
             if (userInput.length < target.length) {
+                // 如果目標位置是空格，自動補齊
                 if (target[userInput.length] === " ") {
                     userInput += " ";
                 }
@@ -254,6 +267,7 @@
             }
         }
 
+        // 倒退鍵
         function backspace() {
             if (userInput.endsWith(" ")) {
                 userInput = userInput.slice(0, -2);
@@ -263,6 +277,7 @@
             render();
         }
 
+        // 語音播放
         function speak(text) {
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'en-US';
@@ -270,21 +285,24 @@
             window.speechSynthesis.speak(utterance);
         }
 
+        // 產生鍵盤
         function createKeyboard() {
             const container = document.getElementById('keyboard-container');
-            const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-            letters.forEach(l => {
-                const div = document.createElement('div');
-                div.className = 'key';
-                div.innerText = l;
-                div.onclick = () => pressKey(l);
-                container.appendChild(div);
+            const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+            
+            alphabet.forEach(letter => {
+                const key = document.createElement('div');
+                key.className = 'key';
+                key.innerText = letter;
+                key.onclick = () => pressKey(letter);
+                container.appendChild(key);
             });
-            const del = document.createElement('div');
-            del.className = 'key backspace';
-            del.innerText = "←";
-            del.onclick = backspace;
-            container.appendChild(del);
+
+            const delKey = document.createElement('div');
+            delKey.className = 'key backspace';
+            delKey.innerText = "←";
+            delKey.onclick = backspace;
+            container.appendChild(delKey);
         }
 
         window.onload = () => {
