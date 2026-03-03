@@ -196,7 +196,8 @@
             startSel.add(new Option(label, idx));
             endSel.add(new Option(label, idx));
         });
-        endSel.selectedIndex = flatUnits.length - 1;
+        startSel.selectedIndex = 0; // 設定起點為第一個 (G1-U1)
+        endSel.selectedIndex = 0;   // 設定終點也為第一個 (G1-U1)
         updateWrongWordCount();
     }
 
