@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>英文聽寫練習機 (是怎樣)</title>
+    <title>英文聽寫練習機 (好緊張)</title>
     <style>
         :root {
             --main-blue: #5CB8E6;
@@ -136,24 +136,30 @@
         #delete-key { width: 90px; background-color: #999; box-shadow: 0 4px 0px #666; }
         
         .control-btn { 
-            padding: 12px 25px; 
-            font-size: 18px; 
+            flex: 1; /* 讓三個按鈕等寬 */
+            max-width: 250px;
+            padding: 15px 10px; 
+            font-size: 20px; 
             font-weight: bold; 
             border: none; 
             border-radius: 15px; 
             cursor: pointer; 
-            margin: 5px; 
             color: white;
         }
-        #start-btn { background-color: #FF9F43; box-shadow: 0 4px 0px #E67E22; }
+        #start-btn { background-color: #999; box-shadow: 0 4px 0px #666; }
         #repeat-btn { background-color: #4CAF50; box-shadow: 0 4px 0px #388E3C; }
         #check-btn { background-color: var(--main-yellow); color: #856404; box-shadow: 0 4px 0px #FBC02D; }
-        #answer-btn { background-color: #00BCD4; box-shadow: 0 4px 0px #0097A7; }
+        #check-btn:disabled { background-color: #E0E0E0; color: #999; box-shadow: none; opacity: 1; }
         /* 視覺上的按鈕按壓效果 */
         .control-btn:active:not(:disabled) { transform: translateY(2px); box-shadow: none; }
         .control-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none !important; }
         
-        #controls { margin-bottom: 10px; }
+        #controls { 
+            display: flex; 
+            justify-content: center; 
+            gap: 15px; 
+            margin-bottom: 15px
+        }
     </style>
 </head>
 <body>
@@ -178,8 +184,7 @@
     <div id="controls">
         <button id="start-btn" class="control-btn" onclick="startGame()">🚀 開始遊戲</button>
         <button id="repeat-btn" class="control-btn" onclick="readWord(currentWord)" disabled>🔈 重複唸一遍</button>
-        <button id="check-btn" class="control-btn" onclick="checkSpelling()" disabled>✅ 拼寫檢查</button>
-        <button id="answer-btn" class="control-btn" onclick="showAnswer()" disabled>📖 解答</button>
+        <button id="check-btn" class="control-btn" onclick="checkSpelling()" disabled>✅ 對答案</button>
     </div>
 
     <div id="keyboard"></div>
@@ -264,21 +269,33 @@
         loadNextWord();
     }
     function handleSkip() {
-    // 提示孩子該字已記錄
-        document.getElementById('feedback').textContent = `📝 已記錄在待複習清單裡`;
-        document.getElementById('feedback').style.color = "var(--main-blue)";
-    
-        // 強制存入錯題本與當次複習清單
-        saveWrongWord(currentWordList[wordIndex]);
-        if (!errorList.includes(currentWordList[wordIndex])) {
-            errorList.push(currentWordList[wordIndex]);
+        const target = currentWord.replace(/\s/g, '').toLowerCase();
+        
+        // 1. 顯示正確解答與紅綠顏色
+        for (let i = 0; i < target.length; i++) {
+            const slot = document.getElementById(`slot-${i}`);
+            const correctChar = target[i];
+            if (currentSpelling[i] === correctChar) {
+                slot.className = 'letter-slot slot-correct';
+            } else {
+                slot.className = 'letter-slot slot-wrong';
+            }
+            slot.textContent = correctChar;
         }
     
-        // 稍微延遲讓孩子看清楚提示後再跳轉
+        // 2. 語音與記錄
+        document.getElementById('feedback').textContent = `📝 已記錄在待複習清單裡`;
+        saveWrongWord(currentWordList[wordIndex]);
+        if (!errorList.includes(currentWordList[wordIndex])) errorList.push(currentWordList[wordIndex]);
+        
+        readWord("The answer is");
+        setTimeout(() => readWord(currentWord), 800);
+    
+        // 3. 兩秒後跳下一題
         setTimeout(() => {
             wordIndex++;
             loadNextWord();
-        }, 1000);
+        }, 2500);
     }
     function startWrongWordMode() {
         const book = JSON.parse(localStorage.getItem('wrongWords') || '[]');
@@ -287,7 +304,17 @@
         wordIndex = 0; errorList = []; isGameActive = true; isReviewMode = true;
         loadNextWord();
     }
-
+    
+    function handleMainAction() {
+        const btn = document.getElementById('check-btn');
+        if (btn.textContent === '✅ 拼寫檢查') {
+            checkSpelling();
+        } else if (btn.textContent === '🔄 重試') {
+            resetInput();
+            btn.textContent = '✅ 拼寫檢查';
+            btn.disabled = true; // 重置後格未滿，需禁用
+        }
+    }
     function loadNextWord() {
         if (wordIndex >= currentWordList.length) {
             if (isReviewMode) endGame(); else handleRoundEnd();
@@ -295,18 +322,20 @@
         }
         const data = currentWordList[wordIndex];
         currentWord = data.word.toLowerCase();
-        currentSpelling = [];
+        currentSpelling = Array(currentWord.replace(/\s/g, '').length).fill(""); // 初始化空陣列
+        
         document.getElementById('input-area').innerHTML = '';
         document.getElementById('feedback').textContent = '';
-        document.getElementById('start-btn').textContent = '💪下一個單字';
-        document.getElementById('repeat-btn').disabled = false;
-        document.getElementById('check-btn').disabled = true;
-        document.getElementById('check-btn').textContent = '✅ 拼寫檢查';
-        document.getElementById('answer-btn').disabled = false;
-
+        
+        // 按鈕狀態重置
+        const checkBtn = document.getElementById('check-btn');
+        checkBtn.textContent = '✅ 拼寫檢查';
+        checkBtn.disabled = true;
+        checkBtn.onclick = handleMainAction; 
+    
         const info = isReviewMode ? "挑戰中" : `${wordIndex+1}/${currentWordList.length}`;
         document.getElementById('hint-display').textContent = `[${info}] ${data.hint}`;
-
+    
         let lIdx = 0;
         currentWord.split('').forEach(char => {
             if (char === ' ') {
@@ -335,15 +364,14 @@
     }
     function checkSpelling() {
         const target = currentWord.replace(/\s/g, '').toLowerCase();
-        const player = currentSpelling.join('').toLowerCase();
         let allCorrect = true;
     
         for (let i = 0; i < target.length; i++) {
             const slot = document.getElementById(`slot-${i}`);
             if (currentSpelling[i] === target[i]) {
-                slot.className = 'letter-slot slot-correct'; // 對的顯示綠色
+                slot.className = 'letter-slot slot-correct';
             } else {
-                slot.className = 'letter-slot slot-wrong';   // 錯的顯示紅色
+                slot.className = 'letter-slot slot-wrong';
                 allCorrect = false;
             }
         }
@@ -362,10 +390,10 @@
             if (!errorList.includes(currentWordList[wordIndex])) errorList.push(currentWordList[wordIndex]);
             
             readWord("Try again"); 
-            // 這裡直接讓按鈕維持「✅ 拼寫檢查」，但因為格子沒滿，會被 handleKeyClick 自動設為 disabled
-            // 這樣孩子補字後，按鈕會自動亮起，不需要多點一次「重試」
-            document.getElementById('check-btn').textContent = '✅ 拼寫檢查';
-            resetInput(); // 直接觸發重置紅字邏輯
+            // 轉變為重試模式
+            const checkBtn = document.getElementById('check-btn');
+            checkBtn.textContent = '🔄 重試';
+            checkBtn.disabled = false;
         }
     }
 
