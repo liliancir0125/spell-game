@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>英文聽寫練習機 (V5.8 手動修正版)</title>
+    <title>英文聽寫練習機 (V5.9)</title>
     <style>
         :root {
             --main-blue: #5CB8E6;
@@ -28,7 +28,18 @@
             color: var(--text-dark);
             overflow-x: hidden; /* 防止橫向捲動 */
         }
-
+        /* Excel 風格：淺綠底深綠字 */
+        .slot-correct {
+            background-color: #C6EFCE !important;
+            color: #006100 !important;
+            border-color: #006100 !important;
+        }
+        /* Excel 風格：淺紅底深紅字 */
+        .slot-wrong {
+            background-color: #FFC7CE !important;
+            color: #9C0006 !important;
+            border-color: #9C0006 !important;
+        }
         #game-container { 
             width: 98%; 
             max-width: 1000px; /* iPad 橫放時可以更寬一點 */
@@ -256,7 +267,16 @@
         wordIndex = 0; errorList = []; isGameActive = true; isReviewMode = false;
         loadNextWord();
     }
-
+    function handleSkip() {
+    // 按下一個單字時，先存入錯題本
+    saveWrongWord(currentWordList[wordIndex]);
+    if (!errorList.includes(currentWordList[wordIndex])) {
+        errorList.push(currentWordList[wordIndex]);
+    }
+    // 執行往下跳
+    wordIndex++;
+    loadNextWord();
+}
     function startWrongWordMode() {
         const book = JSON.parse(localStorage.getItem('wrongWords') || '[]');
         if (book.length === 0) { alert("沒有錯題！"); return; }
@@ -315,7 +335,12 @@
         const target = currentWord.replace(/\s/g, '').toLowerCase();
         if (player === target) {
             document.getElementById('feedback').textContent = '🌟 太棒了！';
-            if (isReviewMode) removeWrongWord(currentWord);
+        
+            // 4 & 5. 只有在「純錯題本模式」且「一次答對(errorList沒記錄)」才消掉
+            if (isReviewMode && !errorList.includes(currentWordList[wordIndex])) {
+                removeWrongWord(currentWord);
+            }
+
             const praise = praiseWords[Math.floor(Math.random() * praiseWords.length)];
             readWord(praise); 
             setTimeout(() => { wordIndex++; loadNextWord(); }, 1200);
@@ -341,11 +366,23 @@
     function showAnswer() {
         const target = currentWord.replace(/\s/g, '');
         for(let i=0; i<target.length; i++) {
-            document.getElementById(`slot-${i}`).textContent = target[i];
-            document.getElementById(`slot-${i}`).style.color = "#FF5252";
+            const slot = document.getElementById(`slot-${i}`);
+            
+            // 顯示正確字母
+            slot.textContent = target[i];
+    
+            // 比對玩家輸入的字母是否正確
+            if (currentSpelling[i] === target[i]) {
+                slot.className = 'letter-slot slot-correct'; // 套用綠色樣式
+            } else {
+                slot.className = 'letter-slot slot-wrong';   // 套用紅色樣式
+            }
         }
+        
+        // 紀錄錯題邏輯維持不變
         saveWrongWord(currentWordList[wordIndex]);
         if (!errorList.includes(currentWordList[wordIndex])) errorList.push(currentWordList[wordIndex]);
+        
         document.getElementById('feedback').textContent = `正確答案：${currentWord}`;
         readWord("The answer is");
         setTimeout(() => readWord(currentWord), 800);
