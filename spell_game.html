@@ -369,31 +369,41 @@
     }
 
     function resetInput() {
-        const target = currentWord.replace(/\s/g, '');
-        let newSpelling = [];
+        const target = currentWord.replace(/\s/g, '').toLowerCase();
+        
+        // 建立一個新的陣列，用來存放要保留的字母
+        let updatedSpelling = [];
+        let firstEmptyIndex = -1;
     
         for (let i = 0; i < target.length; i++) {
-            // 如果該位置的字母是對的，就保留
+            const slot = document.getElementById(`slot-${i}`);
+            
+            // 如果這個位置原本打的是對的，就保留
             if (currentSpelling[i] === target[i]) {
-                newSpelling[i] = currentSpelling[i];
+                updatedSpelling[i] = currentSpelling[i];
+                // 保持綠色外觀
+                slot.className = 'letter-slot slot-correct';
             } else {
-                // 如果錯了，清空顯示，且後續不再保留
-                document.getElementById(`slot-${i}`).textContent = '';
-                document.getElementById(`slot-${i}`).style.color = "var(--main-blue)";
+                // 如果錯了，徹底清空畫面與資料
+                updatedSpelling[i] = ""; 
+                slot.textContent = '';
+                slot.className = 'letter-slot'; // 變回空白格樣式
+                
+                // 記住第一個需要補打的位置
+                if (firstEmptyIndex === -1) firstEmptyIndex = i;
             }
         }
         
-        currentSpelling = newSpelling.filter(x => x !== undefined); // 更新輸入進度
+        // 重要：將目前的輸入進度更新為保留後的狀態
+        currentSpelling = updatedSpelling;
         
-        // 更新顯示：將保留的正確字母重新填入（確保顏色正常）
-        currentSpelling.forEach((char, idx) => {
-            const slot = document.getElementById(`slot-${idx}`);
-            slot.textContent = char;
-        });
-    
+        // 重設按鈕狀態
         document.getElementById('check-btn').textContent = '✅ 拼寫檢查';
         document.getElementById('check-btn').onclick = checkSpelling;
-        document.getElementById('check-btn').disabled = (currentSpelling.length !== target.length);
+        document.getElementById('check-btn').disabled = true;
+    
+        // 提示孩子
+        document.getElementById('feedback').textContent = '💡 請補上紅色的地方';
     }
 
     function showAnswer() {
@@ -470,12 +480,19 @@
     }
 
     function handleKeyClick(l) {
-        const target = currentWord.replace(/\s/g, '');
-        if (currentSpelling.length < target.length) {
-            currentSpelling.push(l.toLowerCase());
-            document.getElementById(`slot-${currentSpelling.length-1}`).textContent = l.toLowerCase();
+        const target = currentWord.replace(/\s/g, '').toLowerCase();
+        
+        // 找到第一個還沒填字（或是剛才被清空）的格子
+        const nextEmptyIndex = currentSpelling.findIndex(char => char === "" || char === undefined);
+        
+        if (nextEmptyIndex !== -1 && nextEmptyIndex < target.length) {
+            currentSpelling[nextEmptyIndex] = l.toLowerCase();
+            document.getElementById(`slot-${nextEmptyIndex}`).textContent = l.toLowerCase();
         }
-        document.getElementById('check-btn').disabled = (currentSpelling.length !== target.length);
+    
+        // 檢查是否所有格子都填滿了，填滿才能按檢查
+        const isAllFilled = currentSpelling.filter(char => char !== "" && char !== undefined).length === target.length;
+        document.getElementById('check-btn').disabled = !isAllFilled;
     }
 
     function handleDelete() {
