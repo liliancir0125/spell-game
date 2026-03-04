@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>英文聽寫練習機 刺激了</title>
+    <title>英文聽寫練習機 GO</title>
     <style>
         :root {
             --main-blue: #5CB8E6;
@@ -37,9 +37,16 @@
         }
 
         #selection-bar { 
-            background: #F0F8FF; padding: 8px; border-radius: 15px; margin-bottom: 10px; 
-            display: flex; align-items: center; justify-content: center; gap: 15px; 
-            border: 2px solid var(--main-blue); flex-wrap: wrap;
+            background: #F0F8FF; 
+            padding: 8px; 
+            border-radius: 15px; 
+            margin-bottom: 10px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 10px; /* A版間距較小 */
+            border: 2px solid var(--main-blue);
+            flex-wrap: wrap;
         }
         
         #input-area { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 10px auto; min-height: 65px; }
@@ -62,9 +69,6 @@
         #nav-btn { background-color: #FF9F43; box-shadow: 0 4px 0px #E67E22; } /* 橘色 */
         #repeat-btn { background-color: #4CAF50; box-shadow: 0 4px 0px #388E3C; } /* 綠色 */
         #check-btn { background-color: #00BCD4; box-shadow: 0 4px 0px #0097A7; } /* 藍色 */
-        
-        .control-btn:active:not(:disabled) { transform: translateY(2px); box-shadow: none; }
-        .control-btn:disabled { background-color: #E0E0E0; color: #999; box-shadow: none; cursor: not-allowed; opacity: 1; }
     </style>
 </head>
 <body>
@@ -212,8 +216,13 @@
         let allCorrect = true;
         for (let i = 0; i < target.length; i++) {
             const slot = document.getElementById(`slot-${i}`);
-            if (currentSpelling[i] === target[i]) slot.className = 'letter-slot slot-correct';
-            else { slot.className = 'letter-slot slot-wrong'; allCorrect = false; }
+            // 增加判斷：如果該格是空的，或者字母不對，就顯示錯誤顏色
+            if (currentSpelling[i] && currentSpelling[i] === target[i]) {
+                slot.className = 'letter-slot slot-correct';
+            } else {
+                slot.className = 'letter-slot slot-wrong';
+                allCorrect = false;
+            }
         }
         if (allCorrect) {
             document.getElementById('feedback').textContent = '🌟 太棒了！';
