@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>英文聽寫練習機 (V5.10)</title>
+    <title>英文聽寫練習機 (:D)</title>
     <style>
         :root {
             --main-blue: #5CB8E6;
@@ -338,16 +338,26 @@
         }
     }
     function checkSpelling() {
-        const player = currentSpelling.join('').toLowerCase();
         const target = currentWord.replace(/\s/g, '').toLowerCase();
-        if (player === target) {
+        const player = currentSpelling.join('').toLowerCase();
+        let allCorrect = true;
+    
+        for (let i = 0; i < target.length; i++) {
+            const slot = document.getElementById(`slot-${i}`);
+            if (currentSpelling[i] === target[i]) {
+                slot.className = 'letter-slot slot-correct'; // 對的顯示綠色
+            } else {
+                slot.className = 'letter-slot slot-wrong';   // 錯的顯示紅色
+                allCorrect = false;
+            }
+        }
+    
+        if (allCorrect) {
             document.getElementById('feedback').textContent = '🌟 太棒了！';
-        
-            // 4 & 5. 只有在「純錯題本模式」且「一次答對(errorList沒記錄)」才消掉
+            // 只有「第一次就對」才從錯題本刪除
             if (isReviewMode && !errorList.includes(currentWordList[wordIndex])) {
                 removeWrongWord(currentWord);
             }
-
             const praise = praiseWords[Math.floor(Math.random() * praiseWords.length)];
             readWord(praise); 
             setTimeout(() => { wordIndex++; loadNextWord(); }, 1200);
@@ -355,6 +365,7 @@
             document.getElementById('feedback').textContent = '💡 再試一次！';
             saveWrongWord(currentWordList[wordIndex]);
             if (!errorList.includes(currentWordList[wordIndex])) errorList.push(currentWordList[wordIndex]);
+            
             readWord("Try again"); 
             document.getElementById('check-btn').textContent = '🔄 重試';
             document.getElementById('check-btn').onclick = resetInput;
@@ -390,27 +401,26 @@
     }
 
     function showAnswer() {
-        const target = currentWord.replace(/\s/g, '');
+        const target = targetWord = currentWord.replace(/\s/g, '');
         
         for(let i=0; i<target.length; i++) {
             const slot = document.getElementById(`slot-${i}`);
             const correctChar = target[i];
             const playerChar = currentSpelling[i];
     
-            slot.textContent = correctChar; // 顯示正確答案
-    
+            // 標記紅綠色後顯示正確字母
             if (playerChar === correctChar) {
-                slot.className = 'letter-slot slot-correct'; // Excel 淺綠底
+                slot.className = 'letter-slot slot-correct';
             } else {
-                slot.className = 'letter-slot slot-wrong';   // Excel 淺紅底
+                slot.className = 'letter-slot slot-wrong';
             }
+            slot.textContent = correctChar; 
         }
     
-        // 只要看了解答，就必須記錄為錯題
         saveWrongWord(currentWordList[wordIndex]);
         if (!errorList.includes(currentWordList[wordIndex])) errorList.push(currentWordList[wordIndex]);
     
-        document.getElementById('feedback').textContent = `已記錄在待複習清單囉！`;
+        document.getElementById('feedback').textContent = `別擔心，記錄在待複習清單囉！`;
         readWord("The answer is");
         setTimeout(() => readWord(currentWord), 800);
         setTimeout(() => { wordIndex++; loadNextWord(); }, 2500);
