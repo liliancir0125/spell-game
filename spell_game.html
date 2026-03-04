@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>英文聽寫練習機 (V5.8 字體微調版)</title>
+    <title>英文聽寫練習機 (V5.8 手動修正版)</title>
     <style>
         :root {
             --main-blue: #5CB8E6;
@@ -12,7 +12,11 @@
             --bg-light: #FFFFFF;
             --text-dark: #333333;
         }
-
+        /* 禁止快速點擊放大螢幕 */
+        * { 
+            touch-action: manipulation; 
+            -webkit-tap-highlight-color: transparent;
+        }
         body { 
             font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; 
             background-color: #E1F4FF; 
@@ -49,10 +53,11 @@
             justify-content: center; 
             gap: 15px; 
             border: 2px solid var(--main-blue);
+            flex-wrap: wrap;
         }
 
         .control-label { font-weight: bold; font-size: 16px; }
-        select { padding: 5px; border-radius: 8px; border: 2px solid var(--main-blue); font-size: 16px; font-weight: bold; }
+        select { padding: 5px; border-radius: 8px; border: 2px solid var(--main-blue); font-size: 16px; font-weight: bold; background: white; }
         
         #review-book-btn { 
             background-color: var(--main-pink); 
@@ -74,10 +79,10 @@
         }
 
         .letter-slot { 
-            width: 45px; 
+            width: 42px; 
             height: 60px; 
             line-height: 58px; 
-            font-size: 40px; 
+            font-size: 38px; 
             font-weight: bold; 
             border: 3px solid var(--main-blue); 
             border-radius: 10px; 
@@ -85,7 +90,8 @@
             color: var(--main-blue);
             text-align: center;
         }
-        .space-slot { width: 15px; }
+        /* 讓單字間的空格更明顯 */
+        .space-slot { width: 30px; }
 
         #hint-display { font-size: 24px; font-weight: bold; color: #E67E22; margin-bottom: 5px; }
         #feedback { font-size: 20px; font-weight: bold; color: #FF5252; min-height: 24px; margin-bottom: 5px; }
@@ -125,14 +131,16 @@
             border: none; 
             border-radius: 15px; 
             cursor: pointer; 
-            margin: 0 5px; 
+            margin: 5px; 
             color: white;
         }
         #start-btn { background-color: #FF9F43; box-shadow: 0 4px 0px #E67E22; }
         #repeat-btn { background-color: #4CAF50; box-shadow: 0 4px 0px #388E3C; }
         #check-btn { background-color: var(--main-yellow); color: #856404; box-shadow: 0 4px 0px #FBC02D; }
         #answer-btn { background-color: #00BCD4; box-shadow: 0 4px 0px #0097A7; }
-        .control-btn:disabled { opacity: 0.4; box-shadow: none; }
+        /* 視覺上的按鈕按壓效果 */
+        .control-btn:active:not(:disabled) { transform: translateY(2px); box-shadow: none; }
+        .control-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none !important; }
         
         #controls { margin-bottom: 10px; }
     </style>
@@ -174,8 +182,9 @@
 
     let currentWord = "", currentSpelling = [], currentWordList = [], wordIndex = 0, errorList = [];
     let isGameActive = false, isReviewMode = false, flatUnits = [];
+    let voicesLoaded = false;
     const synth = window.speechSynthesis;
-    const praiseWords = ["Great job", "Excellent", "Amazing", "You are so smart", "Super star", "Well done", "Fantastic"];
+    const praiseWords = ["Great job", "Excellent", "Amazing", "Super star", "Well done", "Fantastic"];
 
     // A-Z 三行佈局
     const azLayout = [
@@ -267,8 +276,10 @@
         document.getElementById('input-area').innerHTML = '';
         document.getElementById('feedback').textContent = '';
         document.getElementById('start-btn').textContent = '💪下一個單字';
+        document.getElementById('repeat-btn').disabled = false;
         document.getElementById('check-btn').disabled = true;
         document.getElementById('check-btn').textContent = '✅ 拼寫檢查';
+        document.getElementById('answer-btn').disabled = false;
 
         const info = isReviewMode ? "挑戰中" : `${wordIndex+1}/${currentWordList.length}`;
         document.getElementById('hint-display').textContent = `[${info}] ${data.hint}`;
@@ -285,14 +296,20 @@
         });
         readWord(currentWord);
     }
-
-    function handleSkip() {
-        saveWrongWord(currentWordList[wordIndex]);
-        if (!errorList.includes(currentWordList[wordIndex])) errorList.push(currentWordList[wordIndex]);
-        wordIndex++;
-        loadNextWord();
+    // 處理重複唸一次按鈕
+    function handleRepeatClick() {
+        readWord(currentWord);
     }
-
+    
+    // 處理檢查按鈕
+    function handleCheckClick() {
+        const btn = document.getElementById('check-btn');
+        if (btn.textContent === '🔄 重試') {
+            resetInput();
+        } else {
+            checkSpelling();
+        }
+    }
     function checkSpelling() {
         const player = currentSpelling.join('').toLowerCase();
         const target = currentWord.replace(/\s/g, '').toLowerCase();
@@ -329,25 +346,31 @@
         }
         saveWrongWord(currentWordList[wordIndex]);
         if (!errorList.includes(currentWordList[wordIndex])) errorList.push(currentWordList[wordIndex]);
-        document.getElementById('feedback').textContent = `答案：${currentWord}`;
-        readWord("Let's see");
+        document.getElementById('feedback').textContent = `正確答案：${currentWord}`;
+        readWord("The answer is");
         setTimeout(() => readWord(currentWord), 800);
         setTimeout(() => { wordIndex++; loadNextWord(); }, 2500);
     }
 
     function handleRoundEnd() {
-        if (errorList.length > 0) {
-            if (confirm(`這輪練習結束！要複習錯題嗎？`)) {
+        if (errorList.length > 0 && !isReviewMode) {
+            if (confirm(`這輪結束！剛剛有 ${errorList.length} 個字錯了，要現在複習嗎？`)) {
                 currentWordList = [...errorList]; wordIndex = 0; errorList = [];
+                isReviewMode = true;
                 loadNextWord();
-            } else { endGame(); }
-        } else { endGame(); }
+                return;
+            }
+        }
+        endGame();
     }
 
     function endGame() {
         isGameActive = false;
         document.getElementById('hint-display').textContent = '🎊 恭喜妳完成練習！';
         document.getElementById('start-btn').textContent = '重新開始';
+        document.getElementById('repeat-btn').disabled = true;
+        document.getElementById('check-btn').disabled = true;
+        document.getElementById('answer-btn').disabled = true;
         updateWrongWordCount();
     }
 
@@ -390,6 +413,7 @@
             document.getElementById(`slot-${currentSpelling.length-1}`).textContent = '';
             currentSpelling.pop();
             document.getElementById('check-btn').disabled = true;
+            document.getElementById('check-btn').textContent = '✅ 拼寫檢查';
         }
     }
 
