@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>英文聽寫練習機 (好了沒)</title>
+    <title>英文聽寫練習機 (是怎樣)</title>
     <style>
         :root {
             --main-blue: #5CB8E6;
@@ -350,7 +350,6 @@
     
         if (allCorrect) {
             document.getElementById('feedback').textContent = '🌟 太棒了！';
-            // 只有「第一次就對」才從錯題本刪除
             if (isReviewMode && !errorList.includes(currentWordList[wordIndex])) {
                 removeWrongWord(currentWord);
             }
@@ -363,8 +362,10 @@
             if (!errorList.includes(currentWordList[wordIndex])) errorList.push(currentWordList[wordIndex]);
             
             readWord("Try again"); 
-            document.getElementById('check-btn').textContent = '🔄 重試';
-            document.getElementById('check-btn').onclick = resetInput;
+            // 這裡直接讓按鈕維持「✅ 拼寫檢查」，但因為格子沒滿，會被 handleKeyClick 自動設為 disabled
+            // 這樣孩子補字後，按鈕會自動亮起，不需要多點一次「重試」
+            document.getElementById('check-btn').textContent = '✅ 拼寫檢查';
+            resetInput(); // 直接觸發重置紅字邏輯
         }
     }
 
@@ -482,17 +483,42 @@
     function handleKeyClick(l) {
         const target = currentWord.replace(/\s/g, '').toLowerCase();
         
-        // 找到第一個還沒填字（或是剛才被清空）的格子
-        const nextEmptyIndex = currentSpelling.findIndex(char => char === "" || char === undefined);
+        // 尋找第一個「內容為空」的格子索引
+        let nextEmptyIndex = -1;
+        for (let i = 0; i < target.length; i++) {
+            const slot = document.getElementById(`slot-${i}`);
+            if (!slot.textContent) {
+                nextEmptyIndex = i;
+                break;
+            }
+        }
         
-        if (nextEmptyIndex !== -1 && nextEmptyIndex < target.length) {
+        if (nextEmptyIndex !== -1) {
             currentSpelling[nextEmptyIndex] = l.toLowerCase();
-            document.getElementById(`slot-${nextEmptyIndex}`).textContent = l.toLowerCase();
+            const slot = document.getElementById(`slot-${nextEmptyIndex}`);
+            slot.textContent = l.toLowerCase();
+            // 輸入時移除錯誤紅底，保持乾淨
+            slot.classList.remove('slot-wrong'); 
         }
     
-        // 檢查是否所有格子都填滿了，填滿才能按檢查
-        const isAllFilled = currentSpelling.filter(char => char !== "" && char !== undefined).length === target.length;
-        document.getElementById('check-btn').disabled = !isAllFilled;
+        // 檢查是否所有格子都填滿了
+        const filledCount = currentSpelling.filter(char => char && char.trim() !== "").length;
+        document.getElementById('check-btn').disabled = (filledCount !== target.length);
+    }
+    
+    function handleDelete() {
+        // 找出「最後一個有字」且「不是正確綠色」的格子來刪除
+        const target = currentWord.replace(/\s/g, '').toLowerCase();
+        for (let i = target.length - 1; i >= 0; i--) {
+            const slot = document.getElementById(`slot-${i}`);
+            if (slot.textContent && !slot.classList.contains('slot-correct')) {
+                slot.textContent = '';
+                slot.classList.remove('slot-wrong');
+                currentSpelling[i] = "";
+                break;
+            }
+        }
+        document.getElementById('check-btn').disabled = true;
     }
 
     function handleDelete() {
@@ -505,17 +531,20 @@
     }
 
     window.onload = async () => {
+        // 強制啟動語音引擎加載
+        synth.getVoices();
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = () => synth.getVoices();
+        }
+    
         try {
-            // 從 GitHub 抓單字
             const response = await fetch('https://raw.githubusercontent.com/liliancir0125/spell-game/refs/heads/main/word_bank.json');
             if (!response.ok) throw new Error('連線失敗');
-            
             allWordUnits = await response.json();
             
-            // 資料抓完後，才開始執行初始化
             initSelection();
             createKeyboard();
-            updateWrongWordCount(); // 更新錯題本數字
+            updateWrongWordCount();
             console.log("全部載入完成！");
         } catch (error) {
             console.error("錯誤:", error);
