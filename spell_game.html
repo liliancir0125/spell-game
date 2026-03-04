@@ -72,7 +72,9 @@
 <div id="game-container">
     <h2>🦊 英文聽寫練習機 🎓</h2>
     <div id="selection-bar">
-        <select id="start-unit-select"></select><span>~</span><select id="end-unit-select"></select>
+        <span class="control-label">範圍：</span>
+        <select id="start-unit-select"></select>
+        <span>~</span><select id="end-unit-select"></select>
         <button id="review-book-btn" onclick="startWrongWordMode()" style="background-color: var(--main-pink); border: 2px solid #FF80AB; color: #C2185B; font-weight: bold; padding: 6px 15px; border-radius: 10px; cursor: pointer;">📝 錯題本 (0)</button>
     </div>
     <div id="hint-display">準備好了嗎？點擊開始！</div>
