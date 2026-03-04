@@ -186,29 +186,44 @@
     function handleKeyClick(l) {
         const target = currentWord.replace(/\s/g, '').toLowerCase();
         let nextIdx = -1;
+        
+        // 尋找下一個空格填入字母
         for (let i = 0; i < target.length; i++) {
-            if (!document.getElementById(`slot-${i}`).textContent) { nextIdx = i; break; }
+            if (!document.getElementById(`slot-${i}`).textContent) {
+                nextIdx = i;
+                break;
+            }
         }
+        
         if (nextIdx !== -1) {
             currentSpelling[nextIdx] = l.toLowerCase();
             const slot = document.getElementById(`slot-${nextIdx}`);
             slot.textContent = l.toLowerCase();
             slot.classList.remove('slot-wrong');
         }
-        const filled = currentSpelling.filter(c => c && c.trim() !== "").length;
-        document.getElementById('check-btn').disabled = (filled !== target.length);
+        
+        // 修改處：只要有動作，就確保按鈕是可以點擊的，不檢查是否填滿
+        document.getElementById('check-btn').disabled = false; 
     }
 
     function handleDelete() {
         const target = currentWord.replace(/\s/g, '').toLowerCase();
+        
         for (let i = target.length - 1; i >= 0; i--) {
             const slot = document.getElementById(`slot-${i}`);
+            // 只刪除尚未變為「正確(綠色)」的格子
             if (slot.textContent && !slot.classList.contains('slot-correct')) {
-                slot.textContent = ''; slot.classList.remove('slot-wrong');
-                currentSpelling[i] = ""; break;
+                slot.textContent = '';
+                slot.classList.remove('slot-wrong');
+                currentSpelling[i] = "";
+                break;
             }
         }
-        document.getElementById('check-btn').disabled = true;
+        
+        // 修改處：刪除後依然維持按鈕可點擊狀態（除非全部刪光，看您個人喜好）
+        // 如果您希望全空時不能按，可以改成：
+        const hasInput = currentSpelling.some(char => char !== "");
+        document.getElementById('check-btn').disabled = !hasInput;
     }
 
     function checkSpelling() {
