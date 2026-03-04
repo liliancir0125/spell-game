@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>英文聽寫練習機 (V5.9)</title>
+    <title>英文聽寫練習機 (V5.10)</title>
     <style>
         :root {
             --main-blue: #5CB8E6;
@@ -268,15 +268,22 @@
         loadNextWord();
     }
     function handleSkip() {
-    // 按下一個單字時，先存入錯題本
-    saveWrongWord(currentWordList[wordIndex]);
-    if (!errorList.includes(currentWordList[wordIndex])) {
-        errorList.push(currentWordList[wordIndex]);
+    // 提示孩子該字已記錄
+        document.getElementById('feedback').textContent = `📝 已記錄在待複習清單裡`;
+        document.getElementById('feedback').style.color = "var(--main-blue)";
+    
+        // 強制存入錯題本與當次複習清單
+        saveWrongWord(currentWordList[wordIndex]);
+        if (!errorList.includes(currentWordList[wordIndex])) {
+            errorList.push(currentWordList[wordIndex]);
+        }
+    
+        // 稍微延遲讓孩子看清楚提示後再跳轉
+        setTimeout(() => {
+            wordIndex++;
+            loadNextWord();
+        }, 1000);
     }
-    // 執行往下跳
-    wordIndex++;
-    loadNextWord();
-}
     function startWrongWordMode() {
         const book = JSON.parse(localStorage.getItem('wrongWords') || '[]');
         if (book.length === 0) { alert("沒有錯題！"); return; }
@@ -355,35 +362,55 @@
     }
 
     function resetInput() {
-        currentSpelling = [];
         const target = currentWord.replace(/\s/g, '');
-        for(let i=0; i<target.length; i++) { document.getElementById(`slot-${i}`).textContent = ''; }
+        let newSpelling = [];
+    
+        for (let i = 0; i < target.length; i++) {
+            // 如果該位置的字母是對的，就保留
+            if (currentSpelling[i] === target[i]) {
+                newSpelling[i] = currentSpelling[i];
+            } else {
+                // 如果錯了，清空顯示，且後續不再保留
+                document.getElementById(`slot-${i}`).textContent = '';
+                document.getElementById(`slot-${i}`).style.color = "var(--main-blue)";
+            }
+        }
+        
+        currentSpelling = newSpelling.filter(x => x !== undefined); // 更新輸入進度
+        
+        // 更新顯示：將保留的正確字母重新填入（確保顏色正常）
+        currentSpelling.forEach((char, idx) => {
+            const slot = document.getElementById(`slot-${idx}`);
+            slot.textContent = char;
+        });
+    
         document.getElementById('check-btn').textContent = '✅ 拼寫檢查';
         document.getElementById('check-btn').onclick = checkSpelling;
-        document.getElementById('check-btn').disabled = true;
+        document.getElementById('check-btn').disabled = (currentSpelling.length !== target.length);
     }
 
     function showAnswer() {
         const target = currentWord.replace(/\s/g, '');
+        
         for(let i=0; i<target.length; i++) {
             const slot = document.getElementById(`slot-${i}`);
-            
-            // 顯示正確字母
-            slot.textContent = target[i];
+            const correctChar = target[i];
+            const playerChar = currentSpelling[i];
     
-            // 比對玩家輸入的字母是否正確
-            if (currentSpelling[i] === target[i]) {
-                slot.className = 'letter-slot slot-correct'; // 套用綠色樣式
+            slot.textContent = correctChar; // 顯示正確答案
+    
+            if (playerChar === correctChar) {
+                slot.className = 'letter-slot slot-correct'; // Excel 淺綠底
             } else {
-                slot.className = 'letter-slot slot-wrong';   // 套用紅色樣式
+                slot.className = 'letter-slot slot-wrong';   // Excel 淺紅底
             }
         }
-        
-        // 紀錄錯題邏輯維持不變
+    
+        // 只要看了解答，就必須記錄為錯題
         saveWrongWord(currentWordList[wordIndex]);
         if (!errorList.includes(currentWordList[wordIndex])) errorList.push(currentWordList[wordIndex]);
-        
-        document.getElementById('feedback').textContent = `正確答案：${currentWord}`;
+    
+        document.getElementById('feedback').textContent = `已記錄在待複習清單囉！`;
         readWord("The answer is");
         setTimeout(() => readWord(currentWord), 800);
         setTimeout(() => { wordIndex++; loadNextWord(); }, 2500);
