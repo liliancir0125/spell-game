@@ -298,7 +298,7 @@
         const utter = new SpeechSynthesisUtterance(text.toLowerCase());
         const voices = synth.getVoices();
         const f = voices.find(v => v.lang.replace('_', '-').includes('en-US') && (v.name.includes('Female') || v.name.includes('Google') || v.name.includes('zoe')));
-        if (f) utter.voice = f; utter.rate = 0.8; utter.pitch = 1.2; synth.speak(utter);
+        if (f) utter.voice = f; utter.rate = 0.8; synth.speak(utter);
     }
 
     function updateWrongWordCount() {
