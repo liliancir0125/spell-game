@@ -1,4 +1,8 @@
-{
+  "G0": {
+    "U1": [{"word": "A", "hint": "🍎"},{"word": "B", "hint": "🍌"},{"word": "C", "hint": "🐱"},{"word": "D", "hint": "🐶"},{"word": "E", "hint": "🥚"},{"word": "F", "hint": "🐟"},{"word": "G", "hint": "🍇"},{"word": "H", "hint": "🏠"},{"word": "I", "hint": "🍦"}],
+    "U2": [{"word": "J", "hint": "🧃"},{"word": "K", "hint": "🪁"},{"word": "L", "hint": "🦁"},{"word": "M", "hint": "🐵"},{"word": "N", "hint": "🥜"},{"word": "O", "hint": "🍊"},{"word": "P", "hint": "🐷"},{"word": "Q", "hint": "👑"},{"word": "R", "hint": "🐰"}],
+    "U3": [{"word": "S", "hint": "☀️"},{"word": "T", "hint": "🐯"},{"word": "U", "hint": "☂️"},{"word": "V", "hint": "🎻"},{"word": "W", "hint": "🍉"},{"word": "X", "hint": "❌"},{"word": "Y", "hint": "🪀"},{"word": "Z", "hint": "🦓"}]
+  },
   "G1": {
     "U1": [{"word":"he is","hint":"他是"},{"word":"i am","hint":"我是"},{"word":"name","hint":"名字"},{"word":"she is","hint":"她是"},{"word":"the","hint":"這個"},{"word":"this","hint":"這個"},{"word":"you are","hint":"你是"},{"word":"what","hint":"什麼"}],
     "U2": [{"word":"that","hint":"那個"},{"word":"and","hint":"和"},{"word":"our","hint":"我們的"},{"word":"her","hint":"她的"},{"word":"his","hint":"他的"},{"word":"my","hint":"我的"},{"word":"open","hint":"打開"},{"word":"your","hint":"你的"},{"word":"they","hint":"他們"},{"word":"close","hint":"關上"},{"word":"we","hint":"我們"},{"word":"their","hint":"他們的"}],
