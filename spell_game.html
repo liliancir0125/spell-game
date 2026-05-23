@@ -118,7 +118,7 @@
     function initSelection() {
         const startSel = document.getElementById('start-unit-select');
         const endSel = document.getElementById('end-unit-select');
-        ["G1", "G2"].forEach(g => Object.keys(allWordUnits[g]).forEach(u => flatUnits.push({ grade: g, unit: u })));
+        ["G0", "G1", "G2"].forEach(g => Object.keys(allWordUnits[g]).forEach(u => flatUnits.push({ grade: g, unit: u })));
         flatUnits.forEach((item, idx) => {
             const label = `${item.grade}-${item.unit}`;
             startSel.add(new Option(label, idx)); endSel.add(new Option(label, idx));
