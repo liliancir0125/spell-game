@@ -27,5 +27,9 @@
     "U8": [{"word":"afraid","hint":"害怕的"},{"word":"pet","hint":"寵物"},{"word":"dog","hint":"狗"},{"word":"but","hint":"但是"},{"word":"like","hint":"喜歡"},{"word":"cat","hint":"貓"},{"word":"animal","hint":"動物"},{"word":"hamster","hint":"倉鼠"},{"word":"turtle","hint":"烏龜"},{"word":"snake","hint":"蛇"},{"word":"fish","hint":"魚"},{"word":"bird","hint":"鳥"},{"word":"lizard","hint":"蜥蜴"}],
     "U9": [{"word":"kitchen","hint":"廚房"},{"word":"doing","hint":"做"},{"word":"bedroom","hint":"臥室"},{"word":"bathroom","hint":"浴室"},{"word":"dining room","hint":"飯廳"},{"word":"study","hint":"書房"},{"word":"living room","hint":"客廳"},{"word":"reading","hint":"閱讀"},{"word":"cooking","hint":"煮飯"},{"word":"watching","hint":"看"},{"word":"tv","hint":"電視"},{"word":"sleeping","hint":"睡覺"},{"word":"eating","hint":"吃"},{"word":"washing","hint":"洗"},{"word":"writing","hint":"寫"}],
     "U10": [{"word":"desk","hint":"書桌"},{"word":"under","hint":"在...下面"},{"word":"bed","hint":"床"},{"word":"table","hint":"桌子"},{"word":"closet","hint":"衣櫥"},{"word":"bathtub","hint":"浴缸"},{"word":"sink","hint":"水槽"},{"word":"chair","hint":"椅子"},{"word":"refrigerator","hint":"冰箱"},{"word":"stove","hint":"火爐"},{"word":"sofa","hint":"沙發"},{"word":"beside","hint":"在...旁邊"},{"word":"put","hint":"放"}]
+  },
+  "G!!": {
+    "U1": [{"word": "pet", "hint": "寵物"},{"word": "like", "hint": "喜歡"},{"word": "animal", "hint": "動物"},{"word": "snake", "hint": "蛇"},{"word": "turtle", "hint": "烏龜"},{"word": "fish", "hint": "魚"},{"word": "lizard", "hint": "蜥蜴"},{"word": "kitchen", "hint": "廚房"}],
+    "U2": [{"word": "bedroom", "hint": "臥室"},{"word": "writing", "hint": "寫"},{"word": "bathtub", "hint": "浴缸"},{"word": "refrigerator", "hint": "冰箱"},{"word": "table", "hint": "桌子"},{"word": "closet", "hint": "衣櫥"},{"word": "beside", "hint": "在...旁邊"}]
   }
 }
