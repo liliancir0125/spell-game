@@ -28,11 +28,6 @@
     "U9": [{"word":"kitchen","hint":"廚房"},{"word":"doing","hint":"做"},{"word":"bedroom","hint":"臥室"},{"word":"bathroom","hint":"浴室"},{"word":"dining room","hint":"飯廳"},{"word":"study","hint":"書房"},{"word":"living room","hint":"客廳"},{"word":"reading","hint":"閱讀"},{"word":"cooking","hint":"煮飯"},{"word":"watching","hint":"看"},{"word":"tv","hint":"電視"},{"word":"sleeping","hint":"睡覺"},{"word":"eating","hint":"吃"},{"word":"washing","hint":"洗"},{"word":"writing","hint":"寫"}],
     "U10": [{"word":"desk","hint":"書桌"},{"word":"under","hint":"在...下面"},{"word":"bed","hint":"床"},{"word":"table","hint":"桌子"},{"word":"closet","hint":"衣櫥"},{"word":"bathtub","hint":"浴缸"},{"word":"sink","hint":"水槽"},{"word":"chair","hint":"椅子"},{"word":"refrigerator","hint":"冰箱"},{"word":"stove","hint":"火爐"},{"word":"sofa","hint":"沙發"},{"word":"beside","hint":"在...旁邊"},{"word":"put","hint":"放"}]
   },
-<<<<<<< HEAD
-
-=======
-{
->>>>>>> c008cb0899a2ce95f797c7c665c2eca9b1837a27
   "G3": {
     "U1": [
       {"word": "next to", "hint": "在...旁邊"},
@@ -202,5 +197,4 @@
       {"word": "change", "hint": "改變"}
     ]
   }
-}
 }
