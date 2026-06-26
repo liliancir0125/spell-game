@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>英文聽寫練習機 🎓</title>
-    <style>
+<style>
         :root {
             --main-blue: #5CB8E6;
             --main-pink: #FFB3C1;
@@ -54,11 +54,57 @@
         #hint-display { font-size: 24px; font-weight: bold; color: #E67E22; margin-bottom: 5px; min-height: 32px; }
         #feedback { font-size: 22px; font-weight: bold; color: #FF5252; min-height: 30px; margin-bottom: 10px; }
         
-        #keyboard { display: flex; flex-direction: column; gap: 8px; margin: 10px auto; max-width: 900px; }
-        .kb-row { display: flex; justify-content: center; gap: 6px; }
-        .key { background-color: #A4E2FF; border: none; width: 60px; height: 55px; font-size: 26px; font-weight: bold; border-radius: 12px; cursor: pointer; color: white; box-shadow: 0 4px 0px #5CB8E6; display: flex; align-items: center; justify-content: center; }
-        .key:active { transform: translateY(2px); box-shadow: 0 2px 0px #5CB8E6; }
-        #delete-key { width: 90px; background-color: #FF8A8A; box-shadow: 0 4px 0px #D85C5C; font-size: 20px; } /* 刪除鍵改為顯眼的紅色，適合兒童識別 */
+        /* ================= 🚀 iPad 專用兒童大鍵盤改版區塊 ================= */
+        #keyboard { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px;             /* 加大每一排之間的上下距離 */
+            margin: 20px auto; 
+            max-width: 850px;       /* 限制最大寬度，防止 iPad 橫放時被拉得太扁 */
+            width: 100%;
+            padding: 0 10px;
+        }
+        .kb-row { 
+            display: flex; 
+            justify-content: center; 
+            gap: 12px;             /* 加大按鍵左右間距，完美防止小手指誤觸 */
+            width: 100%;
+        }
+        .key { 
+            background-color: #A4E2FF; 
+            border: none; 
+            flex: 1;               /* 讓按鍵依螢幕寬度自動延伸 */
+            min-width: 50px;
+            max-width: 75px;       /* 限制按鍵最大寬度，維持漂亮的接近正方形 */
+            height: 65px;          /* 撐高高度，在 iPad 上超級好點點擊 */
+            font-size: 32px;       /* 字母放大，讓弟弟看得更清楚 */
+            font-weight: 900;      /* 極粗體 */
+            border-radius: 14px;   /* 更圓潤、有玩具感的圓角 */
+            cursor: pointer; 
+            color: white; 
+            box-shadow: 0 6px 0px #5CB8E6; /* 更明顯的立體果凍按鍵感 */
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            transition: all 0.05s ease;
+            -webkit-tap-highlight-color: transparent; /* 拔除 iOS 點擊時的灰色陰影 */
+        }
+        .key:active { 
+            transform: translateY(4px); 
+            box-shadow: 0 2px 0px #5CB8E6; 
+        }
+        
+        /* 刪除鍵放大、加寬 */
+        #delete-key { 
+            max-width: 115px;      /* 刪除鍵加寬，符合右手大拇指按壓範圍 */
+            background-color: #FF8A8A; 
+            box-shadow: 0 6px 0px #D85C5C; 
+            font-size: 22px; 
+        }
+        #delete-key:active {
+            box-shadow: 0 2px 0px #D85C5C;
+        }
+        /* =============================================================== */
         
         #controls { display: flex; justify-content: center; gap: 15px; margin-bottom: 10px; flex-wrap: wrap; }
         .control-btn { width: 150px; padding: 12px 10px; font-size: 18px; font-weight: bold; border: none; border-radius: 15px; cursor: pointer; color: white; transition: all 0.1s; }
@@ -67,7 +113,7 @@
         #nav-btn { background-color: #FF9F43; box-shadow: 0 4px 0px #E67E22; }
         #repeat-btn { background-color: var(--main-green); box-shadow: 0 4px 0px #388E3C; }
         #check-btn { background-color: #00BCD4; box-shadow: 0 4px 0px #0097A7; }
-    </style>
+</style>
 </head>
 <body>
 
@@ -135,22 +181,32 @@
         createKeyboardUI() {
             const kb = document.getElementById('keyboard');
             kb.innerHTML = '';
-            const azLayout = ["ABCDEFGHI", "JKLMNOPQR", "STUVWXYZ"];
+            
+            // 依然是寶貝們最熟悉的 ABC 順序，但完美分配到三排，每排按鈕數更平均！
+            const azLayout = [
+                ["A", "B", "C", "D", "E", "F", "G", "H", "I"],
+                ["J", "K", "L", "M", "N", "O", "P", "Q", "R"],
+                ["S", "T", "U", "V", "W", "X", "Y", "Z"]
+            ];
+
             azLayout.forEach((row, idx) => {
                 const div = document.createElement('div');
                 div.className = 'kb-row';
-                row.split('').forEach(l => {
+                
+                row.forEach(l => {
                     const b = document.createElement('button');
                     b.className = 'key';
                     b.textContent = l;
                     b.onclick = () => this.handleKeyClick(l);
                     div.appendChild(b);
                 });
+                
+                // 把「刪除鍵」優雅地放在第三排的最後面，寬度會自動配合我們寫的 CSS 放大
                 if (idx === 2) {
                     const del = document.createElement('button');
                     del.id = 'delete-key';
                     del.className = 'key';
-                    del.textContent = '刪除 ↩'; // 使用中文提示，對 5~8 歲兒童更友善
+                    del.textContent = '刪除 ↩'; 
                     del.onclick = () => this.handleDelete();
                     div.appendChild(del);
                 }
