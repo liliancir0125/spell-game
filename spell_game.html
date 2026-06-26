@@ -118,11 +118,10 @@
     function initSelection() {
         const startSel = document.getElementById('start-unit-select');
         const endSel = document.getElementById('end-unit-select');
-<<<<<<< HEAD
+
+        // 只保留這行乾淨的程式碼，其餘 Git 符號都刪掉
         ["G0", "G1", "G2", "G3"].forEach(g => Object.keys(allWordUnits[g]).forEach(u => flatUnits.push({ grade: g, unit: u })));
-=======
-        ["G0", "G1", "G2","G3"].forEach(g => Object.keys(allWordUnits[g]).forEach(u => flatUnits.push({ grade: g, unit: u })));
->>>>>>> c008cb0899a2ce95f797c7c665c2eca9b1837a27
+
         flatUnits.forEach((item, idx) => {
             const label = `${item.grade}-${item.unit}`;
             startSel.add(new Option(label, idx)); endSel.add(new Option(label, idx));
