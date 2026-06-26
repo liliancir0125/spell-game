@@ -118,7 +118,11 @@
     function initSelection() {
         const startSel = document.getElementById('start-unit-select');
         const endSel = document.getElementById('end-unit-select');
+<<<<<<< HEAD
         ["G0", "G1", "G2", "G3"].forEach(g => Object.keys(allWordUnits[g]).forEach(u => flatUnits.push({ grade: g, unit: u })));
+=======
+        ["G0", "G1", "G2","G3"].forEach(g => Object.keys(allWordUnits[g]).forEach(u => flatUnits.push({ grade: g, unit: u })));
+>>>>>>> c008cb0899a2ce95f797c7c665c2eca9b1837a27
         flatUnits.forEach((item, idx) => {
             const label = `${item.grade}-${item.unit}`;
             startSel.add(new Option(label, idx)); endSel.add(new Option(label, idx));
@@ -297,8 +301,8 @@
         if (!text) return; synth.cancel();
         const utter = new SpeechSynthesisUtterance(text.toLowerCase());
         const voices = synth.getVoices();
-        const f = voices.find(v => v.lang.includes('en') && (v.name.includes('Female') || v.name.includes('Google') || v.name.includes('Samantha')));
-        if (f) utter.voice = f; utter.rate = 0.8; utter.pitch = 1.2; synth.speak(utter);
+        const f = voices.find(v => v.lang.replace('_', '-').includes('en-US') && (v.name.includes('Female') || v.name.includes('Google') || v.name.includes('zoe')));
+        if (f) utter.voice = f; utter.rate = 0.8; synth.speak(utter);
     }
 
     function updateWrongWordCount() {
