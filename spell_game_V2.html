@@ -6,12 +6,17 @@
     <title>英文聽寫練習機 🎓</title>
 <style>
         :root {
-            --main-blue: #5CB8E6;
-            --main-pink: #FFB3C1;
-            --main-yellow: #FFD93D;
-            --main-green: #4CAF50;
+            --main-blue: #5FAAE1;
+            --main-blue-dark: #2A6199;
+            --main-blue-light: #D2E7F7;
+            --main-pink: #FCD7DE;
+            --main-pink-dark: #E88CA3;
+            --main-yellow: #FCE883;
+            --main-yellow-dark: #E4C746;
+            --main-purple: #D1C2E0;
+            --main-purple-dark: #9E86BA;
             --bg-light: #FFFFFF;
-            --text-dark: #333333;
+            --text-dark: #5d4037;
         }
         * { 
             touch-action: manipulation; 
@@ -20,7 +25,7 @@
         }
         body { 
             font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; 
-            background-color: #E1F4FF; 
+            background-color: #F5FAFF; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
@@ -35,11 +40,11 @@
         #game-container { 
             width: 98%; max-width: 1000px; border: 6px solid var(--main-blue); 
             background-color: var(--bg-light); border-radius: 20px; 
-            box-shadow: 0 6px 0px #A4D8F0; padding: 15px; text-align: center;
+            box-shadow: 0 6px 0px var(--main-blue-light); padding: 15px; text-align: center;
         }
 
         #selection-bar { 
-            background: #F0F8FF; padding: 10px; border-radius: 15px; 
+            background: var(--main-blue-light); padding: 10px; border-radius: 15px; 
             margin-bottom: 15px; display: flex; align-items: center; 
             justify-content: center; gap: 10px; border: 2px solid var(--main-blue);
             flex-wrap: wrap;
@@ -48,10 +53,10 @@
         select { padding: 6px; border-radius: 8px; border: 2px solid var(--main-blue); font-size: 16px; font-weight: bold; }
         
         #input-area { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 15px auto; min-height: 65px; }
-        .letter-slot { width: 45px; height: 60px; line-height: 54px; font-size: 36px; font-weight: bold; border: 3px solid var(--main-blue); border-radius: 10px; background: #FFF; color: var(--main-blue); text-align: center; }
+        .letter-slot { width: 45px; height: 60px; line-height: 54px; font-size: 36px; font-weight: bold; border: 3px solid var(--main-blue); border-radius: 10px; background: #FFF; color: var(--main-blue-dark); text-align: center; }
         .space-slot { width: 30px; }
 
-        #hint-display { font-size: 24px; font-weight: bold; color: #E67E22; margin-bottom: 5px; min-height: 32px; }
+        #hint-display { font-size: 24px; font-weight: bold; color: var(--main-purple-dark); margin-bottom: 5px; min-height: 32px; }
         #feedback { font-size: 22px; font-weight: bold; color: #FF5252; min-height: 30px; margin-bottom: 10px; }
         
         /* ================= 🚀 iPad 專用兒童大鍵盤改版區塊 ================= */
@@ -71,7 +76,8 @@
             width: 100%;
         }
         .key { 
-            background-color: #A4E2FF; 
+            background-color: var(--main-blue);
+            color: #A4E2FF; 
             border: none; 
             flex: 1;               /* 讓按鍵依螢幕寬度自動延伸 */
             min-width: 50px;
@@ -82,7 +88,7 @@
             border-radius: 14px;   /* 更圓潤、有玩具感的圓角 */
             cursor: pointer; 
             color: white; 
-            box-shadow: 0 6px 0px #5CB8E6; /* 更明顯的立體果凍按鍵感 */
+            box-shadow: 0 6px 0px var(--main-blue-dark); /* 更明顯的立體果凍按鍵感 */
             display: flex; 
             align-items: center; 
             justify-content: center; 
@@ -91,18 +97,19 @@
         }
         .key:active { 
             transform: translateY(4px); 
-            box-shadow: 0 2px 0px #5CB8E6; 
+            box-shadow: 0 2px 0px var(--main-blue-dark); 
         }
-        
+
         /* 刪除鍵放大、加寬 */
         #delete-key { 
             max-width: 115px;      /* 刪除鍵加寬，符合右手大拇指按壓範圍 */
-            background-color: #FF8A8A; 
-            box-shadow: 0 6px 0px #D85C5C; 
+            background-color: var(--main-pink); 
+            color: var(--main-pink-dark);
+            box-shadow: 0 6px 0px var(--main-pink-dark); 
             font-size: 22px; 
         }
         #delete-key:active {
-            box-shadow: 0 2px 0px #D85C5C;
+            box-shadow: 0 2px 0px var(--main-pink-dark);
         }
         /* =============================================================== */
         
@@ -110,9 +117,9 @@
         .control-btn { width: 150px; padding: 12px 10px; font-size: 18px; font-weight: bold; border: none; border-radius: 15px; cursor: pointer; color: white; transition: all 0.1s; }
         .control-btn:disabled { background-color: #CCC !important; box-shadow: 0 4px 0px #999 !important; opacity: 0.6; cursor: not-allowed; }
         
-        #nav-btn { background-color: #FF9F43; box-shadow: 0 4px 0px #E67E22; }
-        #repeat-btn { background-color: var(--main-green); box-shadow: 0 4px 0px #388E3C; }
-        #check-btn { background-color: #00BCD4; box-shadow: 0 4px 0px #0097A7; }
+        #nav-btn { background-color: var(--main-blue); box-shadow: 0 4px 0px var(--main-blue-dark); }
+        #repeat-btn { background-color: var(--main-purple-dark); box-shadow: 0 4px 0px #7A6293; }
+        #check-btn { background-color: var(--main-yellow-dark); color: var(--text-dark); box-shadow: 0 4px 0px #C9A83A; }
 </style>
 </head>
 <body>
@@ -125,7 +132,7 @@
         <select id="start-unit-select"></select>
         <span>~</span>
         <select id="end-unit-select"></select>
-        <button id="review-book-btn" onclick="stateManager.startWrongWordMode()" style="background-color: var(--main-pink); border: 2px solid #FF80AB; color: #C2185B; font-weight: bold; padding: 6px 15px; border-radius: 10px; cursor: pointer;">📝 錯題本 (0)</button>
+        <button id="review-book-btn" onclick="stateManager.startWrongWordMode()" style="background-color: var(--main-pink); border: 2px solid var(--main-pink-dark); color: #A15870; font-weight: bold; padding: 6px 15px; border-radius: 10px; cursor: pointer;">📝 錯題本 (0)</button>
     </div>
     <div id="hint-display">準備好了嗎？點擊下方開始遊戲吧！</div>
     <div id="feedback"></div>
