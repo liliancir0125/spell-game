@@ -6,17 +6,18 @@
     <title>英文聽寫練習機 🎓</title>
 <style>
         :root {
-            --main-blue: #5FAAE1;
-            --main-blue-dark: #2A6199;
-            --main-blue-light: #D2E7F7;
-            --main-pink: #FCD7DE;
-            --main-pink-dark: #E88CA3;
-            --main-yellow: #FCE883;
-            --main-yellow-dark: #E4C746;
-            --main-purple: #D1C2E0;
-            --main-purple-dark: #9E86BA;
+            /* 🐣 吉伊卡哇配色系統 */
+            --main-blue: #5FAAE1;        /* 小八貓 - 主色 */
+            --main-blue-dark: #2A6199;   /* 小八貓深藍 - 陰影/文字 */
+            --main-blue-light: #D2E7F7;  /* 小八貓淺藍 - 底色區塊 */
+            --main-pink: #FCD7DE;        /* 吉伊卡哇 - 腮紅粉 */
+            --main-pink-dark: #E88CA3;   /* 腮紅粉深色 - 邊框/陰影 */
+            --main-yellow: #FCE883;      /* 烏薩奇 - 瘋狂黃 */
+            --main-yellow-dark: #E4C746; /* 烏薩奇陰影黃 */
+            --main-purple: #D1C2E0;      /* 小桃鼠 - 傲嬌紫 */
+            --main-purple-dark: #9E86BA; /* 小桃鼠深紫 */
             --bg-light: #FFFFFF;
-            --text-dark: #5d4037;
+            --text-dark: #5d4037;        /* 溫柔咖啡棕，取代死板深灰 */
         }
         * { 
             touch-action: manipulation; 
@@ -37,6 +38,18 @@
         .slot-correct { background-color: #C6EFCE !important; color: #006100 !important; border-color: #006100 !important; }
         .slot-wrong { background-color: #FFC7CE !important; color: #9C0006 !important; border-color: #9C0006 !important; }
         
+        .page-header {
+            width: 98%; max-width: 1000px; display: flex; justify-content: flex-start;
+            margin-bottom: 10px;
+        }
+        .btn-home {
+            text-decoration: none; background: var(--main-yellow); padding: 6px 14px;
+            border-radius: 15px; font-weight: bold; border: 2px solid var(--text-dark);
+            font-size: 0.95rem; color: var(--text-dark); display: inline-flex;
+            align-items: center; gap: 6px;
+        }
+        .btn-home svg { flex-shrink: 0; }
+
         #game-container { 
             width: 98%; max-width: 1000px; border: 6px solid var(--main-blue); 
             background-color: var(--bg-light); border-radius: 20px; 
@@ -76,8 +89,7 @@
             width: 100%;
         }
         .key { 
-            background-color: var(--main-blue);
-            color: #A4E2FF; 
+            background-color: var(--main-blue); 
             border: none; 
             flex: 1;               /* 讓按鍵依螢幕寬度自動延伸 */
             min-width: 50px;
@@ -99,7 +111,7 @@
             transform: translateY(4px); 
             box-shadow: 0 2px 0px var(--main-blue-dark); 
         }
-
+        
         /* 刪除鍵放大、加寬 */
         #delete-key { 
             max-width: 115px;      /* 刪除鍵加寬，符合右手大拇指按壓範圍 */
@@ -124,6 +136,9 @@
 </head>
 <body>
 
+<div class="page-header">
+    <a href="https://liliancir0125.github.io/Rumi_Study_Hall/" class="btn-home"><svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polygon points="12,3 21,11 3,11" fill="var(--main-pink)" stroke="var(--text-dark)" stroke-width="1.8" stroke-linejoin="round"/><rect x="5" y="11" width="14" height="10" rx="2.5" fill="#FFFFFF" stroke="var(--text-dark)" stroke-width="1.8"/><rect x="10" y="15" width="4" height="6" rx="1.5" fill="var(--main-blue)" stroke="var(--text-dark)" stroke-width="1.4"/><circle cx="16.5" cy="15.5" r="1.4" fill="var(--main-yellow-dark)" stroke="var(--text-dark)" stroke-width="1"/></svg> 回大廳</a>
+</div>
 <div id="game-container">
     <h2>🦊 英文聽寫練習機 🎓</h2>
     
