@@ -17,7 +17,7 @@
       {"word": "L", "hint": "🦁", "speak": "lion"},
       {"word": "M", "hint": "🐵", "speak": "monkey"},
       {"word": "N", "hint": "👃", "speak": "nose"},
-      {"word": "O", "hint": "🐂", "speak": "ox"},
+      {"word": "O", "hint": "🍊", "speak": "orange"},
       {"word": "P", "hint": "🐷", "speak": "pig"},
       {"word": "Q", "hint": "⚡", "speak": "quick"},
       {"word": "R", "hint": "🐀", "speak": "rat"}
@@ -28,7 +28,7 @@
       {"word": "U", "hint": "⬆️", "speak": "up"},
       {"word": "V", "hint": "🚐", "speak": "van"},
       {"word": "W", "hint": "🦱", "speak": "wig"},
-      {"word": "X", "hint": "🦊", "speak": "fox"},
+      {"word": "X", "hint": "🩻", "speak": "X-ray"},
       {"word": "Y", "hint": "🍠", "speak": "yam"},
       {"word": "Z", "hint": "🤐", "speak": "zipper"}
     ]
