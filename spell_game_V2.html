@@ -144,10 +144,12 @@
     <h2>👧🏻 英文聽寫練習機 👦🏻</h2>
     
     <div id="selection-bar">
-        <span class="control-label">範圍:</span>
-        <select id="start-select"></select>
-        <span>~</span>
-        <select id="end-select"></select>
+        <span class="control-label">從:</span>
+        <select id="start-grade-select"></select>
+        <select id="start-unit-select"></select>
+        <span class="control-label">到:</span>
+        <select id="end-grade-select"></select>
+        <select id="end-unit-select"></select>
         <span class="control-label">🎯抽題數:</span>
         <input type="number" id="quiz-count-input" min="1" placeholder="全部" class="quiz-count-input">
         <button id="review-book-btn" onclick="stateManager.startWrongWordMode()" style="background-color: var(--main-pink); border: 2px solid var(--main-pink-dark); color: #A15870; font-weight: bold; padding: 6px 15px; border-radius: 10px; cursor: pointer;">📝 錯題本 (0)</button>
@@ -174,10 +176,10 @@
         currentWord: "",
         currentSpeakWord: "", // 4. 唸法可跟答案不同（例如 G0 唸 Apple，答案填 A）
         hasMistakeThisWord: false, // 3. 本題本輪是否曾經拼錯過（嚴格版錯題本判定用）
-        pendingErrorMessage: null,
         currentSpelling: [],
         isGameActive: false,
         isReviewMode: false,
+        isImmediateRetry: false, // 考完立刻複習用的旗標，跟錯題本刪除邏輯完全無關
         currentActionState: "CHECK", // "CHECK" 或 "RESET"
         slotElements: [], // 快取當前單字的 DOM 節點，大幅優化效能
 
@@ -193,37 +195,48 @@
                 }
             });
 
-            const startSel = document.getElementById('start-select');
-            const endSel = document.getElementById('end-select');
-            this.buildRangeSelect(startSel);
-            this.buildRangeSelect(endSel);
+            const startGradeSel = document.getElementById('start-grade-select');
+            const endGradeSel = document.getElementById('end-grade-select');
+            const startUnitSel = document.getElementById('start-unit-select');
+            const endUnitSel = document.getElementById('end-unit-select');
+
+            expectedGrades.forEach(g => {
+                if (this.allWordUnits[g]) {
+                    startGradeSel.add(new Option(g, g));
+                    endGradeSel.add(new Option(g, g));
+                }
+            });
+
+            this.populateUnitSelect(startGradeSel.value, startUnitSel);
+            this.populateUnitSelect(endGradeSel.value, endUnitSel);
+
+            startGradeSel.onchange = () => this.populateUnitSelect(startGradeSel.value, startUnitSel);
+            endGradeSel.onchange = () => this.populateUnitSelect(endGradeSel.value, endUnitSel);
 
             // 預設「到」直接選到最後一個年級/單元，符合大部分人「整個範圍」的直覺
-            if (endSel.options.length > 0) {
-                endSel.selectedIndex = endSel.options.length - 1;
+            if (endGradeSel.options.length > 0) {
+                endGradeSel.selectedIndex = endGradeSel.options.length - 1;
+                this.populateUnitSelect(endGradeSel.value, endUnitSel);
+                endUnitSel.selectedIndex = endUnitSel.options.length - 1;
             }
 
             this.updateWrongWordCountUI();
             this.createKeyboardUI();
         },
 
-        // 1. 用分組(optgroup)下拉選單取代雙層選單，一次點擊就能看到 G0~G3 底下的所有單元
-        buildRangeSelect(selectEl) {
+        // 1. 先選年級，才會出現該年級底下的單元選項（兩層選單，年級跟單元同時可見）
+        populateUnitSelect(grade, selectEl) {
             selectEl.innerHTML = '';
-            let lastGrade = null;
-            let group = null;
-            this.flatUnits.forEach((item, idx) => {
-                if (item.grade !== lastGrade) {
-                    group = document.createElement('optgroup');
-                    group.label = item.grade;
-                    selectEl.appendChild(group);
-                    lastGrade = item.grade;
-                }
-                const opt = document.createElement('option');
-                opt.value = idx;
-                opt.textContent = item.unit;
-                group.appendChild(opt);
-            });
+            if (this.allWordUnits[grade]) {
+                Object.keys(this.allWordUnits[grade]).forEach(u => {
+                    selectEl.add(new Option(u, u));
+                });
+            }
+        },
+
+        // 依（年級, 單元）找出在 flatUnits 中的位置
+        findFlatIndex(grade, unit) {
+            return this.flatUnits.findIndex(f => f.grade === grade && f.unit === unit);
         },
 
         // 2. 建立更具視覺辨識度的兒童鍵盤
@@ -280,9 +293,13 @@
         },
 
         startGame() {
-            let s = parseInt(document.getElementById('start-select').value);
-            let e = parseInt(document.getElementById('end-select').value);
-            if (isNaN(s) || isNaN(e)) return;
+            const sg = document.getElementById('start-grade-select').value;
+            const su = document.getElementById('start-unit-select').value;
+            const eg = document.getElementById('end-grade-select').value;
+            const eu = document.getElementById('end-unit-select').value;
+            let s = this.findFlatIndex(sg, su);
+            let e = this.findFlatIndex(eg, eu);
+            if (s === -1 || e === -1) return;
             if (s > e) { [s, e] = [e, s]; } // 自動幫忙交換，選反了也不會失敗
 
             this.currentWordList = [];
@@ -306,6 +323,7 @@
             this.errorList = [];
             this.isGameActive = true;
             this.isReviewMode = false;
+            this.isImmediateRetry = false;
             
             document.getElementById('nav-btn').textContent = '➡️ 跳過此單字';
             document.getElementById('repeat-btn').disabled = false;
@@ -330,7 +348,7 @@
             
             this.setCheckButtonState("CHECK", true); // 預設重置為對答案狀態並禁用
             
-            const prefix = this.isReviewMode ? '🔥 複習中' : `✏️ 第 ${this.wordIndex + 1}/${this.currentWordList.length} 題`;
+            const prefix = (this.isReviewMode || this.isImmediateRetry) ? '🔥 複習中' : `✏️ 第 ${this.wordIndex + 1}/${this.currentWordList.length} 題`;
             document.getElementById('hint-display').textContent = `[${prefix}] ${data.hint}`;
             
             this.slotElements = []; // 清空快取
@@ -531,27 +549,41 @@
         },
 
         // 改良：使用畫面文字提示取代傳統 Alert / Confirm 彈窗，最適合幼童操作
-        // 3. 移除「考完立刻重考」的流程：錯題本的刪除只透過專門的錯題本複習模式觸發
+        // 2. 「馬上複習」只是方便再練一次剛剛錯的字，不會影響錯題本的刪除判定
+        //    錯題本的刪除，只有透過「📝 錯題本」進去、且這次複習全程零失誤才會觸發
         handleRoundEnd() {
-            this.pendingErrorMessage = this.errorList.length > 0
-                ? `🎉 練習完囉！這次有 ${this.errorList.length} 個字錯過，已經幫你收進錯題本囉！`
-                : null;
-            this.errorList = [];
-            this.endGame();
+            if (this.errorList.length > 0) {
+                const reviewWords = [...this.errorList];
+                document.getElementById('hint-display').textContent = `🎉 練習完囉！這次有 ${reviewWords.length} 個字錯過，已經幫你收進錯題本囉！`;
+                document.getElementById('feedback').textContent = '要現在馬上複習這幾個字嗎？點下面的按鈕開始吧！👇';
+                document.getElementById('feedback').style.color = '#E67E22';
+
+                this.errorList = [];
+
+                const btn = document.getElementById('nav-btn');
+                btn.textContent = '🔥 馬上複習錯題';
+                btn.onclick = () => {
+                    this.currentWordList = reviewWords;
+                    this.wordIndex = 0;
+                    this.errorList = [];
+                    this.isGameActive = true;
+                    this.isReviewMode = false;      // 不是錯題本模式，不會刪除紀錄
+                    this.isImmediateRetry = true;   // 純粹方便複習用
+                    document.getElementById('repeat-btn').disabled = false;
+                    btn.textContent = '➡️ 跳過此單字';
+                    btn.onclick = () => this.handleNavAction();
+                    this.loadNextWord();
+                };
+            } else {
+                this.endGame();
+            }
         },
 
         endGame() {
             this.isGameActive = false;
-            if (this.pendingErrorMessage) {
-                document.getElementById('hint-display').textContent = this.pendingErrorMessage;
-                document.getElementById('feedback').textContent = '想加強複習的話，可以點上面的「📝 錯題本」喔！';
-                document.getElementById('feedback').style.color = '#E67E22';
-                this.pendingErrorMessage = null;
-            } else {
-                document.getElementById('hint-display').textContent = '🎊 哇！全部完成了！你太棒了！';
-                document.getElementById('feedback').textContent = '想再玩一次的話，請點擊「開始遊戲」';
-                document.getElementById('feedback').style.color = '#4CAF50';
-            }
+            document.getElementById('hint-display').textContent = '🎊 哇！全部完成了！你太棒了！';
+            document.getElementById('feedback').textContent = '想再玩一次的話，請點擊「開始遊戲」';
+            document.getElementById('feedback').style.color = '#4CAF50';
             
             const navBtn = document.getElementById('nav-btn');
             navBtn.textContent = '🚀 開始遊戲';
@@ -575,6 +607,7 @@
             this.errorList = [];
             this.isGameActive = true;
             this.isReviewMode = true;
+            this.isImmediateRetry = false;
             
             document.getElementById('nav-btn').textContent = '➡️ 跳過此單字';
             document.getElementById('repeat-btn').disabled = false;
