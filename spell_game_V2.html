@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>英文聽寫練習機 🎓</title>
+    <title>英文聽寫練習機 👧🏻👦🏻</title>
 <style>
         :root {
             /* 🐣 吉伊卡哇配色系統 */
@@ -64,6 +64,7 @@
         }
         .control-label { font-weight: bold; font-size: 16px; }
         select { padding: 6px; border-radius: 8px; border: 2px solid var(--main-blue); font-size: 16px; font-weight: bold; }
+        .quiz-count-input { width: 60px; padding: 6px; border-radius: 8px; border: 2px solid var(--main-blue); font-size: 16px; font-weight: bold; text-align: center; }
         
         #input-area { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 15px auto; min-height: 65px; }
         .letter-slot { width: 45px; height: 60px; line-height: 54px; font-size: 36px; font-weight: bold; border: 3px solid var(--main-blue); border-radius: 10px; background: #FFF; color: var(--main-blue-dark); text-align: center; }
@@ -140,13 +141,15 @@
     <a href="https://liliancir0125.github.io/Rumi_Study_Hall/" class="btn-home"><svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polygon points="12,3 21,11 3,11" fill="var(--main-pink)" stroke="var(--text-dark)" stroke-width="1.8" stroke-linejoin="round"/><rect x="5" y="11" width="14" height="10" rx="2.5" fill="#FFFFFF" stroke="var(--text-dark)" stroke-width="1.8"/><rect x="10" y="15" width="4" height="6" rx="1.5" fill="var(--main-blue)" stroke="var(--text-dark)" stroke-width="1.4"/><circle cx="16.5" cy="15.5" r="1.4" fill="var(--main-yellow-dark)" stroke="var(--text-dark)" stroke-width="1"/></svg> 回大廳</a>
 </div>
 <div id="game-container">
-    <h2>🦊 英文聽寫練習機 🎓</h2>
+    <h2>👧🏻 英文聽寫練習機 👦🏻</h2>
     
     <div id="selection-bar">
-        <span class="control-label">範圍：</span>
-        <select id="start-unit-select"></select>
+        <span class="control-label">範圍:</span>
+        <select id="start-select"></select>
         <span>~</span>
-        <select id="end-unit-select"></select>
+        <select id="end-select"></select>
+        <span class="control-label">🎯抽題數:</span>
+        <input type="number" id="quiz-count-input" min="1" placeholder="全部" class="quiz-count-input">
         <button id="review-book-btn" onclick="stateManager.startWrongWordMode()" style="background-color: var(--main-pink); border: 2px solid var(--main-pink-dark); color: #A15870; font-weight: bold; padding: 6px 15px; border-radius: 10px; cursor: pointer;">📝 錯題本 (0)</button>
     </div>
     <div id="hint-display">準備好了嗎？點擊下方開始遊戲吧！</div>
@@ -169,6 +172,9 @@
         wordIndex: 0,
         errorList: [],
         currentWord: "",
+        currentSpeakWord: "", // 4. 唸法可跟答案不同（例如 G0 唸 Apple，答案填 A）
+        hasMistakeThisWord: false, // 3. 本題本輪是否曾經拼錯過（嚴格版錯題本判定用）
+        pendingErrorMessage: null,
         currentSpelling: [],
         isGameActive: false,
         isReviewMode: false,
@@ -178,9 +184,6 @@
         // 1. 安全初始化，防止遠端資料異常崩潰
         init(data) {
             this.allWordUnits = data;
-            const startSel = document.getElementById('start-unit-select');
-            const endSel = document.getElementById('end-unit-select');
-            
             const expectedGrades = ["G0", "G1", "G2", "G3"];
             expectedGrades.forEach(g => {
                 if (this.allWordUnits[g]) {
@@ -190,13 +193,37 @@
                 }
             });
 
-            this.flatUnits.forEach((item, idx) => {
-                const label = `${item.grade}-${item.unit}`;
-                startSel.add(new Option(label, idx));
-                endSel.add(new Option(label, idx));
-            });
+            const startSel = document.getElementById('start-select');
+            const endSel = document.getElementById('end-select');
+            this.buildRangeSelect(startSel);
+            this.buildRangeSelect(endSel);
+
+            // 預設「到」直接選到最後一個年級/單元，符合大部分人「整個範圍」的直覺
+            if (endSel.options.length > 0) {
+                endSel.selectedIndex = endSel.options.length - 1;
+            }
+
             this.updateWrongWordCountUI();
             this.createKeyboardUI();
+        },
+
+        // 1. 用分組(optgroup)下拉選單取代雙層選單，一次點擊就能看到 G0~G3 底下的所有單元
+        buildRangeSelect(selectEl) {
+            selectEl.innerHTML = '';
+            let lastGrade = null;
+            let group = null;
+            this.flatUnits.forEach((item, idx) => {
+                if (item.grade !== lastGrade) {
+                    group = document.createElement('optgroup');
+                    group.label = item.grade;
+                    selectEl.appendChild(group);
+                    lastGrade = item.grade;
+                }
+                const opt = document.createElement('option');
+                opt.value = idx;
+                opt.textContent = item.unit;
+                group.appendChild(opt);
+            });
         },
 
         // 2. 建立更具視覺辨識度的兒童鍵盤
@@ -253,9 +280,10 @@
         },
 
         startGame() {
-            const s = parseInt(document.getElementById('start-unit-select').value);
-            const e = parseInt(document.getElementById('end-unit-select').value);
-            if (s > e) return;
+            let s = parseInt(document.getElementById('start-select').value);
+            let e = parseInt(document.getElementById('end-select').value);
+            if (isNaN(s) || isNaN(e)) return;
+            if (s > e) { [s, e] = [e, s]; } // 自動幫忙交換，選反了也不會失敗
 
             this.currentWordList = [];
             for (let i = s; i <= e; i++) {
@@ -266,6 +294,14 @@
             }
             
             this.shuffle(this.currentWordList);
+
+            // 2. 自訂抽題數：數量足夠才裁切，不夠就全部考、不湊數
+            const countVal = document.getElementById('quiz-count-input').value;
+            const n = parseInt(countVal);
+            if (!isNaN(n) && n > 0 && n < this.currentWordList.length) {
+                this.currentWordList = this.currentWordList.slice(0, n);
+            }
+
             this.wordIndex = 0;
             this.errorList = [];
             this.isGameActive = true;
@@ -283,6 +319,8 @@
             }
             const data = this.currentWordList[this.wordIndex];
             this.currentWord = data.word.toLowerCase();
+            this.currentSpeakWord = data.speak || data.word; // 4. 有 speak 欄位就唸它，沒有就唸 word 本身
+            this.hasMistakeThisWord = false; // 3. 重置本題的拼錯紀錄
             const cleanLength = this.currentWord.replace(/\s/g, '').length;
             this.currentSpelling = Array(cleanLength).fill("");
             
@@ -312,7 +350,7 @@
                     lIdx++;
                 }
             });
-            this.readWord(this.currentWord);
+            this.readWord(this.currentSpeakWord);
         },
 
         // 狀態語意化優化：取代不安全的文字內容比對
@@ -384,7 +422,8 @@
                 document.getElementById('feedback').textContent = '🌟 太棒了！你答對了！';
                 document.getElementById('feedback').style.color = '#4CAF50';
                 
-                if (this.isReviewMode) {
+                // 3. 嚴格版：錯題本複習時，必須這題全程都沒拼錯過，才算「畢業」刪除紀錄
+                if (this.isReviewMode && !this.hasMistakeThisWord) {
                     this.removeWrongWord(this.currentWord);
                 }
                 
@@ -399,6 +438,7 @@
                 document.getElementById('feedback').textContent = '💡 沒關係，再試試看喔！';
                 document.getElementById('feedback').style.color = '#FF5252';
                 
+                this.hasMistakeThisWord = true; // 3. 記錄這題本輪曾經拼錯過
                 this.saveWrongWord(this.currentWordList[this.wordIndex]);
                 if (!this.errorList.includes(this.currentWordList[this.wordIndex])) {
                     this.errorList.push(this.currentWordList[this.wordIndex]);
@@ -446,7 +486,7 @@
         },
 
         repeatVoice() {
-            this.readWord(this.currentWord);
+            this.readWord(this.currentSpeakWord || this.currentWord);
         },
 
         readWord(text) {
@@ -491,33 +531,27 @@
         },
 
         // 改良：使用畫面文字提示取代傳統 Alert / Confirm 彈窗，最適合幼童操作
+        // 3. 移除「考完立刻重考」的流程：錯題本的刪除只透過專門的錯題本複習模式觸發
         handleRoundEnd() {
-            if (this.errorList.length > 0) {
-                document.getElementById('hint-display').textContent = `🎉 練習完囉！裡面有 ${this.errorList.length} 個錯字。`;
-                document.getElementById('feedback').textContent = "我們一起點擊下方按鈕來複習吧！👇";
-                document.getElementById('feedback').style.color = '#E67E22';
-                
-                const btn = document.getElementById('nav-btn');
-                btn.textContent = "🔥 馬上複習錯題";
-                btn.onclick = () => {
-                    this.currentWordList = [...this.errorList];
-                    this.wordIndex = 0;
-                    this.errorList = [];
-                    this.isReviewMode = true;
-                    btn.textContent = '➡️ 跳過此單字';
-                    btn.onclick = () => this.handleNavAction();
-                    this.loadNextWord();
-                };
-            } else {
-                this.endGame();
-            }
+            this.pendingErrorMessage = this.errorList.length > 0
+                ? `🎉 練習完囉！這次有 ${this.errorList.length} 個字錯過，已經幫你收進錯題本囉！`
+                : null;
+            this.errorList = [];
+            this.endGame();
         },
 
         endGame() {
             this.isGameActive = false;
-            document.getElementById('hint-display').textContent = '🎊 哇！全部完成了！你太棒了！';
-            document.getElementById('feedback').textContent = '想再玩一次的話，請點擊「開始遊戲」';
-            document.getElementById('feedback').style.color = '#4CAF50';
+            if (this.pendingErrorMessage) {
+                document.getElementById('hint-display').textContent = this.pendingErrorMessage;
+                document.getElementById('feedback').textContent = '想加強複習的話，可以點上面的「📝 錯題本」喔！';
+                document.getElementById('feedback').style.color = '#E67E22';
+                this.pendingErrorMessage = null;
+            } else {
+                document.getElementById('hint-display').textContent = '🎊 哇！全部完成了！你太棒了！';
+                document.getElementById('feedback').textContent = '想再玩一次的話，請點擊「開始遊戲」';
+                document.getElementById('feedback').style.color = '#4CAF50';
+            }
             
             const navBtn = document.getElementById('nav-btn');
             navBtn.textContent = '🚀 開始遊戲';
