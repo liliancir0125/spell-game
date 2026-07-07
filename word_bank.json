@@ -1,8 +1,38 @@
 {
+  {
   "G0": {
-    "U1": [{"word": "A", "hint": "🍎"},{"word": "B", "hint": "🍌"},{"word": "C", "hint": "🐱"},{"word": "D", "hint": "🐶"},{"word": "E", "hint": "🥚"},{"word": "F", "hint": "🐟"},{"word": "G", "hint": "🍇"},{"word": "H", "hint": "🏠"},{"word": "I", "hint": "🍦"}],
-    "U2": [{"word": "J", "hint": "🧃"},{"word": "K", "hint": "🪁"},{"word": "L", "hint": "🦁"},{"word": "M", "hint": "🐵"},{"word": "N", "hint": "🥜"},{"word": "O", "hint": "🍊"},{"word": "P", "hint": "🐷"},{"word": "Q", "hint": "👑"},{"word": "R", "hint": "🐰"}],
-    "U3": [{"word": "S", "hint": "☀️"},{"word": "T", "hint": "🐯"},{"word": "U", "hint": "☂️"},{"word": "V", "hint": "🎻"},{"word": "W", "hint": "🍉"},{"word": "X", "hint": "❌"},{"word": "Y", "hint": "🪀"},{"word": "Z", "hint": "🦓"}]
+    "U1": [
+      {"word": "A", "hint": "🐜", "speak": "ant"},
+      {"word": "B", "hint": "🚌", "speak": "bus"},
+      {"word": "C", "hint": "🚗", "speak": "car"},
+      {"word": "D", "hint": "🐶", "speak": "dog"},
+      {"word": "E", "hint": "🧚", "speak": "elf"},
+      {"word": "F", "hint": "🐟", "speak": "fish"},
+      {"word": "G", "hint": "🍇", "speak": "grape"},
+      {"word": "H", "hint": "👒", "speak": "hat"},
+      {"word": "I", "hint": "🧊", "speak": "ice"}
+    ],
+    "U2": [
+      {"word": "J", "hint": "🧃", "speak": "juice"},
+      {"word": "K", "hint": "🔑", "speak": "key"},
+      {"word": "L", "hint": "🦁", "speak": "lion"},
+      {"word": "M", "hint": "🐵", "speak": "monkey"},
+      {"word": "N", "hint": "👃", "speak": "nose"},
+      {"word": "O", "hint": "🐂", "speak": "ox"},
+      {"word": "P", "hint": "🐷", "speak": "pig"},
+      {"word": "Q", "hint": "⚡", "speak": "quick"},
+      {"word": "R", "hint": "🐀", "speak": "rat"}
+    ],
+    "U3": [
+      {"word": "S", "hint": "☀️", "speak": "sun"},
+      {"word": "T", "hint": "🔟", "speak": "ten"},
+      {"word": "U", "hint": "⬆️", "speak": "up"},
+      {"word": "V", "hint": "🚐", "speak": "van"},
+      {"word": "W", "hint": "🦱", "speak": "wig"},
+      {"word": "X", "hint": "🦊", "speak": "fox"},
+      {"word": "Y", "hint": "🍠", "speak": "yam"},
+      {"word": "Z", "hint": "🤐", "speak": "zipper"}
+    ]
   },
   "G1": {
     "U1": [{"word":"he is","hint":"他是"},{"word":"i am","hint":"我是"},{"word":"name","hint":"名字"},{"word":"she is","hint":"她是"},{"word":"the","hint":"這個"},{"word":"this","hint":"這個"},{"word":"you are","hint":"你是"},{"word":"what","hint":"什麼"}],
