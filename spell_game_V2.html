@@ -63,8 +63,14 @@
             flex-wrap: wrap;
         }
         .control-label { font-weight: bold; font-size: 16px; }
+        #range-controls { display: contents; }
         select { padding: 6px; border-radius: 8px; border: 2px solid var(--main-blue); font-size: 16px; font-weight: bold; }
         .quiz-count-input { width: 60px; padding: 6px; border-radius: 8px; border: 2px solid var(--main-blue); font-size: 16px; font-weight: bold; text-align: center; }
+        #starred-toggle-btn {
+            background: white; border: 2px solid var(--main-yellow-dark); color: var(--text-dark);
+            font-weight: bold; padding: 6px 15px; border-radius: 10px; cursor: pointer; font-size: 16px;
+        }
+        #starred-toggle-btn.active { background: var(--main-yellow); }
         
         #input-area { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 15px auto; min-height: 65px; }
         .letter-slot { width: 45px; height: 60px; line-height: 54px; font-size: 36px; font-weight: bold; border: 3px solid var(--main-blue); border-radius: 10px; background: #FFF; color: var(--main-blue-dark); text-align: center; }
@@ -137,7 +143,7 @@
         #check-btn { background-color: var(--main-yellow-dark); color: var(--text-dark); box-shadow: 0 4px 0px #C9A83A; }
 
         /* ========== 📖 單字學習模式 + ⭐ 重點複習 + 🎉 答對小驚喜 ========== */
-        #mode-toggle, #source-toggle { display: flex; justify-content: center; gap: 10px; margin-bottom: 12px; }
+        #mode-toggle { display: flex; justify-content: center; gap: 10px; margin-bottom: 12px; }
         .mode-btn {
             flex: 1; max-width: 180px; padding: 10px; border-radius: 12px;
             border: 2.5px solid var(--main-blue); background: white; font-weight: bold;
@@ -146,10 +152,9 @@
         .mode-btn.active { background: var(--main-blue); color: white; }
 
         #study-area { text-align: center; padding: 10px 0 20px 0; }
-        #study-progress { font-weight: bold; font-size: 15px; color: #999; margin-bottom: 8px; }
-        #study-title-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 15px; min-height: 34px; }
-        #study-hint { font-size: 26px; font-weight: bold; color: var(--main-purple-dark); }
-        #study-star { font-size: 30px; cursor: pointer; line-height: 1; user-select: none; }
+        #study-hint-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 5px; min-height: 32px; flex-wrap: wrap; }
+        #study-hint-text { font-size: 24px; font-weight: bold; color: var(--main-purple-dark); }
+        #study-star { font-size: 26px; cursor: pointer; line-height: 1; user-select: none; }
         #study-word { font-size: clamp(32px, 8vw, 60px); font-weight: 900; color: var(--main-blue-dark); margin-bottom: 20px; letter-spacing: 1px; word-break: break-word; line-height: 1.15; }
         #study-controls { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
 
@@ -169,25 +174,23 @@
 <div id="game-container">
     <h2>👧🏻 英文聽寫練習機 👦🏻</h2>
 
-    <div id="source-toggle">
-        <button id="source-all-btn" class="mode-btn active" onclick="stateManager.setSource('all')">📚 全部單字</button>
-        <button id="source-starred-btn" class="mode-btn" onclick="stateManager.setSource('starred')">⭐ 重點複習 (0)</button>
-    </div>
-
-    <div id="selection-bar">
-        <span class="control-label">從:</span>
-        <select id="start-grade-select"></select>
-        <select id="start-unit-select"></select>
-        <span class="control-label">到:</span>
-        <select id="end-grade-select"></select>
-        <select id="end-unit-select"></select>
-        <span class="control-label">🎯抽題數:</span>
-        <input type="number" id="quiz-count-input" min="1" placeholder="全部" class="quiz-count-input">
-    </div>
-
     <div id="mode-toggle">
         <button id="mode-quiz-btn" class="mode-btn active" onclick="stateManager.setViewMode('quiz')">✏️ 測驗模式</button>
         <button id="mode-study-btn" class="mode-btn" onclick="stateManager.setViewMode('study')">📖 學習模式</button>
+    </div>
+
+    <div id="selection-bar">
+        <span id="range-controls">
+            <span class="control-label">從:</span>
+            <select id="start-grade-select"></select>
+            <select id="start-unit-select"></select>
+            <span class="control-label">到:</span>
+            <select id="end-grade-select"></select>
+            <select id="end-unit-select"></select>
+        </span>
+        <span class="control-label">🎯抽題數:</span>
+        <input type="number" id="quiz-count-input" min="1" placeholder="全部" class="quiz-count-input">
+        <button id="starred-toggle-btn" onclick="stateManager.toggleStarredSource()">⭐ 重點複習 (0)</button>
     </div>
 
     <div id="quiz-area">
@@ -206,9 +209,8 @@
     </div>
 
     <div id="study-area" style="display:none;">
-        <div id="study-progress"></div>
-        <div id="study-title-row">
-            <span id="study-hint"></span>
+        <div id="study-hint-row">
+            <span id="study-hint-text"></span>
             <span id="study-star" onclick="stateManager.toggleStar()">☆</span>
         </div>
         <div id="study-word"></div>
@@ -642,12 +644,15 @@
             this.slotElements = [];
         },
 
-        // ========== 🔀 來源切換（📚 全部單字 / ⭐ 重點複習）與檢視模式切換（✏️ 測驗 / 📖 學習） ==========
+        // ========== 🔀 重點複習開關（⭐ 按下=on／再按一次=off）與檢視模式切換（✏️ 測驗 / 📖 學習） ==========
+        toggleStarredSource() {
+            this.setSource(this.sourceMode === 'starred' ? 'all' : 'starred');
+        },
+
         setSource(source) {
             this.sourceMode = source;
-            document.getElementById('source-all-btn').classList.toggle('active', source === 'all');
-            document.getElementById('source-starred-btn').classList.toggle('active', source === 'starred');
-            document.getElementById('selection-bar').style.display = source === 'all' ? 'flex' : 'none';
+            document.getElementById('starred-toggle-btn').classList.toggle('active', source === 'starred');
+            document.getElementById('range-controls').style.display = source === 'starred' ? 'none' : 'contents';
             this.reloadCurrentView();
         },
 
@@ -723,22 +728,21 @@
         renderStudyCard() {
             if (this.studyList.length === 0) {
                 const msg = this.sourceMode === 'starred' ? '⭐ 目前還沒有標記重點單字喔！' : '這個範圍還沒有單字喔！';
-                document.getElementById('study-progress').textContent = msg;
-                document.getElementById('study-hint').textContent = '';
+                document.getElementById('study-hint-text').textContent = msg;
+                document.getElementById('study-star').style.display = 'none';
                 document.getElementById('study-word').textContent = '';
-                document.getElementById('study-star').textContent = '☆';
                 return;
             }
             if (this.studyCompleted) {
-                document.getElementById('study-progress').textContent = '';
-                document.getElementById('study-hint').textContent = '';
-                document.getElementById('study-star').textContent = '';
+                document.getElementById('study-hint-text').textContent = '';
+                document.getElementById('study-star').style.display = 'none';
                 document.getElementById('study-word').textContent = '🎉 恭喜學習完畢！';
                 return;
             }
+            document.getElementById('study-star').style.display = 'inline';
             const data = this.studyList[this.studyIndex];
-            document.getElementById('study-progress').textContent = `📖 第 ${this.studyIndex + 1}/${this.studyList.length} 個`;
-            document.getElementById('study-hint').textContent = data.hint;
+            const prefix = `📖 第 ${this.studyIndex + 1}/${this.studyList.length} 題`;
+            document.getElementById('study-hint-text').textContent = `[${prefix}] ${data.hint}`;
             document.getElementById('study-word').textContent = data.word;
             document.getElementById('study-star').textContent = this.isStarred(data.word) ? '⭐' : '☆';
             this.studySpeak();
@@ -813,7 +817,7 @@
         },
         updateStarredCountUI() {
             const pool = this.getStarredWordsPool();
-            document.getElementById('source-starred-btn').textContent = `⭐ 重點複習 (${pool.length})`;
+            document.getElementById('starred-toggle-btn').textContent = `⭐ 重點複習 (${pool.length})`;
         },
 
         // ========== 🎉 答對小驚喜：輕量級星星飄浮動畫，不需要額外操作 ==========
