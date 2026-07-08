@@ -70,7 +70,9 @@
         .letter-slot { width: 45px; height: 60px; line-height: 54px; font-size: 36px; font-weight: bold; border: 3px solid var(--main-blue); border-radius: 10px; background: #FFF; color: var(--main-blue-dark); text-align: center; }
         .space-slot { width: 30px; }
 
-        #hint-display { font-size: 24px; font-weight: bold; color: var(--main-purple-dark); margin-bottom: 5px; min-height: 32px; }
+        #hint-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 5px; min-height: 32px; }
+        #hint-display { font-size: 24px; font-weight: bold; color: var(--main-purple-dark); }
+        #quiz-star { font-size: 26px; cursor: pointer; user-select: none; }
         #feedback { font-size: 22px; font-weight: bold; color: #FF5252; min-height: 30px; margin-bottom: 10px; }
         
         /* ================= 🚀 iPad 專用兒童大鍵盤改版區塊 ================= */
@@ -135,7 +137,7 @@
         #check-btn { background-color: var(--main-yellow-dark); color: var(--text-dark); box-shadow: 0 4px 0px #C9A83A; }
 
         /* ========== 📖 單字學習模式 + ⭐ 重點複習 + 🎉 答對小驚喜 ========== */
-        #mode-toggle { display: flex; justify-content: center; gap: 10px; margin-bottom: 12px; }
+        #mode-toggle, #source-toggle { display: flex; justify-content: center; gap: 10px; margin-bottom: 12px; }
         .mode-btn {
             flex: 1; max-width: 180px; padding: 10px; border-radius: 12px;
             border: 2.5px solid var(--main-blue); background: white; font-weight: bold;
@@ -144,10 +146,11 @@
         .mode-btn.active { background: var(--main-blue); color: white; }
 
         #study-area { text-align: center; padding: 10px 0 20px 0; }
-        #study-progress { font-weight: bold; font-size: 16px; color: var(--main-purple-dark); margin-bottom: 10px; }
-        #study-star { font-size: 42px; cursor: pointer; margin-bottom: 6px; line-height: 1; user-select: none; }
-        #study-hint { font-size: 64px; margin-bottom: 12px; line-height: 1; min-height: 70px; }
-        #study-word { font-size: 44px; font-weight: 900; color: var(--main-blue-dark); margin-bottom: 20px; letter-spacing: 2px; word-break: break-word; }
+        #study-progress { font-weight: bold; font-size: 15px; color: #999; margin-bottom: 8px; }
+        #study-title-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 15px; min-height: 34px; }
+        #study-hint { font-size: 26px; font-weight: bold; color: var(--main-purple-dark); }
+        #study-star { font-size: 30px; cursor: pointer; line-height: 1; user-select: none; }
+        #study-word { font-size: clamp(32px, 8vw, 60px); font-weight: 900; color: var(--main-blue-dark); margin-bottom: 20px; letter-spacing: 1px; word-break: break-word; line-height: 1.15; }
         #study-controls { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
 
         #celebrate-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 500; overflow: hidden; }
@@ -166,11 +169,11 @@
 <div id="game-container">
     <h2>👧🏻 英文聽寫練習機 👦🏻</h2>
 
-    <div id="mode-toggle">
-        <button id="mode-quiz-btn" class="mode-btn active" onclick="stateManager.setMode('quiz')">✏️ 測驗模式</button>
-        <button id="mode-study-btn" class="mode-btn" onclick="stateManager.setMode('study')">📖 學習模式</button>
+    <div id="source-toggle">
+        <button id="source-all-btn" class="mode-btn active" onclick="stateManager.setSource('all')">📚 全部單字</button>
+        <button id="source-starred-btn" class="mode-btn" onclick="stateManager.setSource('starred')">⭐ 重點複習 (0)</button>
     </div>
-    
+
     <div id="selection-bar">
         <span class="control-label">從:</span>
         <select id="start-grade-select"></select>
@@ -180,12 +183,18 @@
         <select id="end-unit-select"></select>
         <span class="control-label">🎯抽題數:</span>
         <input type="number" id="quiz-count-input" min="1" placeholder="全部" class="quiz-count-input">
-        <button id="review-book-btn" onclick="stateManager.startWrongWordMode()" style="background-color: var(--main-pink); border: 2px solid var(--main-pink-dark); color: #A15870; font-weight: bold; padding: 6px 15px; border-radius: 10px; cursor: pointer;">📝 錯題本 (0)</button>
-        <button id="starred-review-btn" onclick="stateManager.startStarredMode()" style="background-color: var(--main-yellow); border: 2px solid var(--main-yellow-dark); color: var(--text-dark); font-weight: bold; padding: 6px 15px; border-radius: 10px; cursor: pointer;">⭐ 重點複習 (0)</button>
+    </div>
+
+    <div id="mode-toggle">
+        <button id="mode-quiz-btn" class="mode-btn active" onclick="stateManager.setViewMode('quiz')">✏️ 測驗模式</button>
+        <button id="mode-study-btn" class="mode-btn" onclick="stateManager.setViewMode('study')">📖 學習模式</button>
     </div>
 
     <div id="quiz-area">
-        <div id="hint-display">準備好了嗎？點擊下方開始遊戲吧！</div>
+        <div id="hint-row">
+            <span id="hint-display">準備好了嗎？點擊下方開始遊戲吧！</span>
+            <span id="quiz-star" onclick="stateManager.toggleCurrentQuizStar()" style="display:none;">☆</span>
+        </div>
         <div id="feedback"></div>
         <div id="input-area"></div>
         <div id="controls">
@@ -198,8 +207,10 @@
 
     <div id="study-area" style="display:none;">
         <div id="study-progress"></div>
-        <div id="study-star" onclick="stateManager.toggleStar()">☆</div>
-        <div id="study-hint"></div>
+        <div id="study-title-row">
+            <span id="study-hint"></span>
+            <span id="study-star" onclick="stateManager.toggleStar()">☆</span>
+        </div>
         <div id="study-word"></div>
         <div id="study-controls">
             <button class="control-btn" style="background: var(--main-purple-dark); box-shadow: 0 4px 0px #7A6293;" onclick="stateManager.studyPrev()">⬅️ 上一個</button>
@@ -220,14 +231,14 @@
         errorList: [],
         currentWord: "",
         currentSpeakWord: "", // 4. 唸法可跟答案不同（例如 G0 唸 Apple，答案填 A）
-        hasMistakeThisWord: false, // 3. 本題本輪是否曾經拼錯過（嚴格版錯題本判定用）
         currentSpelling: [],
         isGameActive: false,
-        isReviewMode: false,
-        isImmediateRetry: false, // 考完立刻複習用的旗標，跟錯題本刪除邏輯完全無關
-        isStarredMode: false, // 目前是否為「⭐ 重點複習」模式（僅影響顯示文字，不影響刪除邏輯）
+        isImmediateRetry: false, // 考完立刻複習用的旗標，純粹方便複習，跟星星無關
+        sourceMode: 'all', // 'all'（依範圍選單）或 'starred'（⭐ 重點複習池）
+        viewMode: 'quiz',  // 'quiz'（測驗）或 'study'（學習卡片）
         studyList: [], // 學習模式用的單字清單（依序、不洗牌）
         studyIndex: 0,
+        studyCompleted: false,
         currentActionState: "CHECK", // "CHECK" 或 "RESET"
         slotElements: [], // 快取當前單字的 DOM 節點，大幅優化效能
 
@@ -268,7 +279,6 @@
                 endUnitSel.selectedIndex = endUnitSel.options.length - 1;
             }
 
-            this.updateWrongWordCountUI();
             this.updateStarredCountUI();
             this.createKeyboardUI();
         },
@@ -342,38 +352,47 @@
         },
 
         startGame() {
-            const sg = document.getElementById('start-grade-select').value;
-            const su = document.getElementById('start-unit-select').value;
-            const eg = document.getElementById('end-grade-select').value;
-            const eu = document.getElementById('end-unit-select').value;
-            let s = this.findFlatIndex(sg, su);
-            let e = this.findFlatIndex(eg, eu);
-            if (s === -1 || e === -1) return;
-            if (s > e) { [s, e] = [e, s]; } // 自動幫忙交換，選反了也不會失敗
+            if (this.sourceMode === 'starred') {
+                const pool = this.getStarredWordsPool();
+                if (pool.length === 0) {
+                    document.getElementById('hint-display').textContent = '⭐ 目前還沒有標記重點單字喔！可以到「學習模式」標記。';
+                    return;
+                }
+                this.currentWordList = [...pool];
+            } else {
+                const sg = document.getElementById('start-grade-select').value;
+                const su = document.getElementById('start-unit-select').value;
+                const eg = document.getElementById('end-grade-select').value;
+                const eu = document.getElementById('end-unit-select').value;
+                let s = this.findFlatIndex(sg, su);
+                let e = this.findFlatIndex(eg, eu);
+                if (s === -1 || e === -1) return;
+                if (s > e) { [s, e] = [e, s]; } // 自動幫忙交換，選反了也不會失敗
 
-            this.currentWordList = [];
-            for (let i = s; i <= e; i++) {
-                const { grade, unit } = this.flatUnits[i];
-                if (this.allWordUnits[grade] && this.allWordUnits[grade][unit]) {
-                    this.currentWordList = this.currentWordList.concat(this.allWordUnits[grade][unit]);
+                this.currentWordList = [];
+                for (let i = s; i <= e; i++) {
+                    const { grade, unit } = this.flatUnits[i];
+                    if (this.allWordUnits[grade] && this.allWordUnits[grade][unit]) {
+                        this.currentWordList = this.currentWordList.concat(this.allWordUnits[grade][unit]);
+                    }
                 }
             }
             
             this.shuffle(this.currentWordList);
 
-            // 2. 自訂抽題數：數量足夠才裁切，不夠就全部考、不湊數
-            const countVal = document.getElementById('quiz-count-input').value;
-            const n = parseInt(countVal);
-            if (!isNaN(n) && n > 0 && n < this.currentWordList.length) {
-                this.currentWordList = this.currentWordList.slice(0, n);
+            // 2. 自訂抽題數：只在「全部單字」時套用，重點複習池不裁切
+            if (this.sourceMode === 'all') {
+                const countVal = document.getElementById('quiz-count-input').value;
+                const n = parseInt(countVal);
+                if (!isNaN(n) && n > 0 && n < this.currentWordList.length) {
+                    this.currentWordList = this.currentWordList.slice(0, n);
+                }
             }
 
             this.wordIndex = 0;
             this.errorList = [];
             this.isGameActive = true;
-            this.isReviewMode = false;
             this.isImmediateRetry = false;
-            this.isStarredMode = false;
             
             document.getElementById('nav-btn').textContent = '➡️ 跳過此單字';
             document.getElementById('repeat-btn').disabled = false;
@@ -388,7 +407,6 @@
             const data = this.currentWordList[this.wordIndex];
             this.currentWord = data.word.toLowerCase();
             this.currentSpeakWord = data.speak || data.word; // 4. 有 speak 欄位就唸它，沒有就唸 word 本身
-            this.hasMistakeThisWord = false; // 3. 重置本題的拼錯紀錄
             const cleanLength = this.currentWord.replace(/\s/g, '').length;
             this.currentSpelling = Array(cleanLength).fill("");
             
@@ -398,11 +416,19 @@
             
             this.setCheckButtonState("CHECK", true); // 預設重置為對答案狀態並禁用
             
-            const modePrefix = (this.isReviewMode || this.isImmediateRetry) ? '🔥 複習中'
-                : this.isStarredMode ? '⭐ 重點複習'
+            const modePrefix = this.isImmediateRetry ? '🔥 複習中'
+                : this.sourceMode === 'starred' ? '⭐ 重點複習'
                 : '✏️ 測驗中';
             const prefix = `${modePrefix} 第 ${this.wordIndex + 1}/${this.currentWordList.length} 題`;
             document.getElementById('hint-display').textContent = `[${prefix}] ${data.hint}`;
+
+            const starEl = document.getElementById('quiz-star');
+            if (this.sourceMode === 'starred') {
+                starEl.style.display = 'inline';
+                starEl.textContent = this.isStarred(this.currentWord) ? '⭐' : '☆';
+            } else {
+                starEl.style.display = 'none';
+            }
             
             this.slotElements = []; // 清空快取
             let lIdx = 0;
@@ -494,11 +520,6 @@
                 document.getElementById('feedback').style.color = '#4CAF50';
                 this.celebrate(); // 🎉 答對小驚喜
                 
-                // 3. 嚴格版：錯題本複習時，必須這題全程都沒拼錯過，才算「畢業」刪除紀錄
-                if (this.isReviewMode && !this.hasMistakeThisWord) {
-                    this.removeWrongWord(this.currentWord);
-                }
-                
                 const praiseWords = ["Great job", "Excellent", "Amazing", "Well done"];
                 this.readWord(praiseWords[Math.floor(Math.random() * praiseWords.length)]);
                 
@@ -510,10 +531,12 @@
                 document.getElementById('feedback').textContent = '💡 沒關係，再試試看喔！';
                 document.getElementById('feedback').style.color = '#FF5252';
                 
-                this.hasMistakeThisWord = true; // 3. 記錄這題本輪曾經拼錯過
-                this.saveWrongWord(this.currentWordList[this.wordIndex]);
+                this.saveStarredWord(this.currentWordList[this.wordIndex]); // 答錯自動標記重點複習
                 if (!this.errorList.includes(this.currentWordList[this.wordIndex])) {
                     this.errorList.push(this.currentWordList[this.wordIndex]);
+                }
+                if (this.sourceMode === 'starred') {
+                    document.getElementById('quiz-star').textContent = '⭐';
                 }
                 
                 this.readWord("Try again");
@@ -542,10 +565,10 @@
                 slot.className = (this.currentSpelling[i] === target[i]) ? 'letter-slot slot-correct' : 'letter-slot slot-wrong';
                 slot.textContent = target[i];
             }
-            document.getElementById('feedback').textContent = `📝 幫你收進複習本囉！`;
+            document.getElementById('feedback').textContent = `⭐ 已經幫你標記重點複習囉！`;
             document.getElementById('feedback').style.color = '#E67E22';
             
-            this.saveWrongWord(this.currentWordList[this.wordIndex]);
+            this.saveStarredWord(this.currentWordList[this.wordIndex]);
             if (!this.errorList.includes(this.currentWordList[this.wordIndex])) {
                 this.errorList.push(this.currentWordList[this.wordIndex]);
             }
@@ -575,55 +598,25 @@
             window.speechSynthesis.speak(utter);
         },
 
-        // LocalStorage 管理與 UI 更新
-        getWrongWordsPool() {
-            try {
-                return JSON.parse(localStorage.getItem('wrongWords') || '[]');
-            } catch {
-                return [];
-            }
-        },
-        updateWrongWordCountUI() {
-            const pool = this.getWrongWordsPool();
-            document.getElementById('review-book-btn').textContent = `📝 錯題本 (${pool.length})`;
-        },
-        saveWrongWord(wordData) {
-            let pool = this.getWrongWordsPool();
-            if (!pool.some(w => w.word.toLowerCase() === wordData.word.toLowerCase())) {
-                pool.push(wordData);
-                localStorage.setItem('wrongWords', JSON.stringify(pool));
-                this.updateWrongWordCountUI();
-            }
-        },
-        removeWrongWord(wordStr) {
-            let pool = this.getWrongWordsPool();
-            pool = pool.filter(w => w.word.toLowerCase() !== wordStr.toLowerCase());
-            localStorage.setItem('wrongWords', JSON.stringify(pool));
-            this.updateWrongWordCountUI();
-        },
-
         // 改良：使用畫面文字提示取代傳統 Alert / Confirm 彈窗，最適合幼童操作
-        // 2. 「馬上複習」只是方便再練一次剛剛錯的字，不會影響錯題本的刪除判定
-        //    錯題本的刪除，只有透過「📝 錯題本」進去、且這次複習全程零失誤才會觸發
+        // 「馬上複習」純粹方便再練一次剛剛錯的字，跟星星標記/重點複習池完全獨立
         handleRoundEnd() {
             if (this.errorList.length > 0) {
                 const reviewWords = [...this.errorList];
-                document.getElementById('hint-display').textContent = `🎉 練習完囉！這次有 ${reviewWords.length} 個字錯過，已經幫你收進錯題本囉！`;
+                document.getElementById('hint-display').textContent = `🎉 練習完囉！這次有 ${reviewWords.length} 個字錯過，已經自動加到⭐重點複習囉！`;
                 document.getElementById('feedback').textContent = '要現在馬上複習這幾個字嗎？點下面的按鈕開始吧！👇';
                 document.getElementById('feedback').style.color = '#E67E22';
 
                 this.errorList = [];
 
                 const btn = document.getElementById('nav-btn');
-                btn.textContent = '🔥 馬上複習錯題';
+                btn.textContent = '🔥 馬上複習';
                 btn.onclick = () => {
                     this.currentWordList = reviewWords;
                     this.wordIndex = 0;
                     this.errorList = [];
                     this.isGameActive = true;
-                    this.isReviewMode = false;      // 不是錯題本模式，不會刪除紀錄
                     this.isImmediateRetry = true;   // 純粹方便複習用
-                    this.isStarredMode = false;
                     document.getElementById('repeat-btn').disabled = false;
                     btn.textContent = '➡️ 跳過此單字';
                     btn.onclick = () => this.handleNavAction();
@@ -649,44 +642,98 @@
             this.slotElements = [];
         },
 
-        // ========== 📖 單字學習模式（卡片式，無壓力，不需要輸入答案） ==========
-        setMode(mode) {
+        // ========== 🔀 來源切換（📚 全部單字 / ⭐ 重點複習）與檢視模式切換（✏️ 測驗 / 📖 學習） ==========
+        setSource(source) {
+            this.sourceMode = source;
+            document.getElementById('source-all-btn').classList.toggle('active', source === 'all');
+            document.getElementById('source-starred-btn').classList.toggle('active', source === 'starred');
+            document.getElementById('selection-bar').style.display = source === 'all' ? 'flex' : 'none';
+            this.reloadCurrentView();
+        },
+
+        setViewMode(mode) {
+            this.viewMode = mode;
             document.getElementById('mode-quiz-btn').classList.toggle('active', mode === 'quiz');
             document.getElementById('mode-study-btn').classList.toggle('active', mode === 'study');
             document.getElementById('quiz-area').style.display = mode === 'quiz' ? 'block' : 'none';
             document.getElementById('study-area').style.display = mode === 'study' ? 'block' : 'none';
-            if (mode === 'study') {
+            this.reloadCurrentView();
+        },
+
+        // 每次切換來源或模式，都重新回到「未開始」的乾淨狀態，不會卡在某個畫面出不來
+        reloadCurrentView() {
+            if (this.viewMode === 'study') {
                 this.startStudyMode();
+            } else {
+                this.resetQuizIdle();
             }
         },
 
-        startStudyMode() {
-            const sg = document.getElementById('start-grade-select').value;
-            const su = document.getElementById('start-unit-select').value;
-            const eg = document.getElementById('end-grade-select').value;
-            const eu = document.getElementById('end-unit-select').value;
-            let s = this.findFlatIndex(sg, su);
-            let e = this.findFlatIndex(eg, eu);
-            if (s === -1 || e === -1) return;
-            if (s > e) { [s, e] = [e, s]; }
+        resetQuizIdle() {
+            this.isGameActive = false;
+            this.isImmediateRetry = false;
+            document.getElementById('hint-display').textContent = '準備好了嗎？點擊下方開始遊戲吧！';
+            document.getElementById('feedback').textContent = '';
+            document.getElementById('input-area').innerHTML = '';
+            document.getElementById('quiz-star').style.display = 'none';
+            const navBtn = document.getElementById('nav-btn');
+            navBtn.textContent = '🚀 開始遊戲';
+            navBtn.onclick = () => this.handleNavAction();
+            document.getElementById('repeat-btn').disabled = true;
+            document.getElementById('check-btn').disabled = true;
+        },
 
-            this.studyList = [];
-            for (let i = s; i <= e; i++) {
-                const { grade, unit } = this.flatUnits[i];
-                if (this.allWordUnits[grade] && this.allWordUnits[grade][unit]) {
-                    this.studyList = this.studyList.concat(this.allWordUnits[grade][unit]);
+        toggleCurrentQuizStar() {
+            if (!this.currentWord) return;
+            if (this.isStarred(this.currentWord)) {
+                this.removeStarredWord(this.currentWord);
+            } else {
+                this.saveStarredWord(this.currentWordList[this.wordIndex]);
+            }
+            document.getElementById('quiz-star').textContent = this.isStarred(this.currentWord) ? '⭐' : '☆';
+        },
+
+        // ========== 📖 單字學習模式（卡片式，無壓力，不需要輸入答案） ==========
+        startStudyMode() {
+            if (this.sourceMode === 'starred') {
+                this.studyList = [...this.getStarredWordsPool()];
+            } else {
+                const sg = document.getElementById('start-grade-select').value;
+                const su = document.getElementById('start-unit-select').value;
+                const eg = document.getElementById('end-grade-select').value;
+                const eu = document.getElementById('end-unit-select').value;
+                let s = this.findFlatIndex(sg, su);
+                let e = this.findFlatIndex(eg, eu);
+                if (s === -1 || e === -1) return;
+                if (s > e) { [s, e] = [e, s]; }
+
+                this.studyList = [];
+                for (let i = s; i <= e; i++) {
+                    const { grade, unit } = this.flatUnits[i];
+                    if (this.allWordUnits[grade] && this.allWordUnits[grade][unit]) {
+                        this.studyList = this.studyList.concat(this.allWordUnits[grade][unit]);
+                    }
                 }
             }
             this.studyIndex = 0;
+            this.studyCompleted = false;
             this.renderStudyCard();
         },
 
         renderStudyCard() {
             if (this.studyList.length === 0) {
-                document.getElementById('study-progress').textContent = '這個範圍還沒有單字喔！';
+                const msg = this.sourceMode === 'starred' ? '⭐ 目前還沒有標記重點單字喔！' : '這個範圍還沒有單字喔！';
+                document.getElementById('study-progress').textContent = msg;
                 document.getElementById('study-hint').textContent = '';
                 document.getElementById('study-word').textContent = '';
                 document.getElementById('study-star').textContent = '☆';
+                return;
+            }
+            if (this.studyCompleted) {
+                document.getElementById('study-progress').textContent = '';
+                document.getElementById('study-hint').textContent = '';
+                document.getElementById('study-star').textContent = '';
+                document.getElementById('study-word').textContent = '🎉 恭喜學習完畢！';
                 return;
             }
             const data = this.studyList[this.studyIndex];
@@ -698,18 +745,29 @@
         },
 
         studySpeak() {
+            if (this.studyCompleted || this.studyList.length === 0) return;
             const data = this.studyList[this.studyIndex];
             if (data) this.readWord(data.speak || data.word);
         },
 
         studyNext() {
+            if (this.studyList.length === 0) return;
             if (this.studyIndex < this.studyList.length - 1) {
                 this.studyIndex++;
+                this.renderStudyCard();
+            } else if (!this.studyCompleted) {
+                this.studyCompleted = true;
                 this.renderStudyCard();
             }
         },
 
         studyPrev() {
+            if (this.studyList.length === 0) return;
+            if (this.studyCompleted) {
+                this.studyCompleted = false;
+                this.renderStudyCard();
+                return;
+            }
             if (this.studyIndex > 0) {
                 this.studyIndex--;
                 this.renderStudyCard();
@@ -717,6 +775,7 @@
         },
 
         toggleStar() {
+            if (this.studyCompleted || this.studyList.length === 0) return;
             const data = this.studyList[this.studyIndex];
             if (!data) return;
             if (this.isStarred(data.word)) {
@@ -727,7 +786,7 @@
             document.getElementById('study-star').textContent = this.isStarred(data.word) ? '⭐' : '☆';
         },
 
-        // ========== ⭐ 重點複習：手動標記，只有再點一次星星取消才會消失（不會因答對自動刪除） ==========
+        // ========== ⭐ 重點複習：答錯自動標記 + 隨時手動點掉，取消只有一種方式（點星星），簡單好懂 ==========
         getStarredWordsPool() {
             try {
                 return JSON.parse(localStorage.getItem('starredWords') || '[]');
@@ -754,30 +813,7 @@
         },
         updateStarredCountUI() {
             const pool = this.getStarredWordsPool();
-            document.getElementById('starred-review-btn').textContent = `⭐ 重點複習 (${pool.length})`;
-        },
-
-        startStarredMode() {
-            const pool = this.getStarredWordsPool();
-            if (pool.length === 0) {
-                this.setMode('quiz');
-                document.getElementById('feedback').textContent = '⭐ 目前還沒有標記重點單字喔！可以到「學習模式」標記。';
-                document.getElementById('feedback').style.color = '#4CAF50';
-                return;
-            }
-            this.setMode('quiz');
-            this.currentWordList = [...pool];
-            this.shuffle(this.currentWordList);
-            this.wordIndex = 0;
-            this.errorList = [];
-            this.isGameActive = true;
-            this.isReviewMode = false;    // 星星標記不採用「答對即刪除」的邏輯
-            this.isImmediateRetry = false;
-            this.isStarredMode = true;
-
-            document.getElementById('nav-btn').textContent = '➡️ 跳過此單字';
-            document.getElementById('repeat-btn').disabled = false;
-            this.loadNextWord();
+            document.getElementById('source-starred-btn').textContent = `⭐ 重點複習 (${pool.length})`;
         },
 
         // ========== 🎉 答對小驚喜：輕量級星星飄浮動畫，不需要額外操作 ==========
@@ -794,27 +830,6 @@
                 layer.appendChild(span);
                 setTimeout(() => span.remove(), 1300);
             }
-        },
-
-        startWrongWordMode() {
-            const pool = this.getWrongWordsPool();
-            if (pool.length === 0) {
-                document.getElementById('feedback').textContent = "✨ 目前錯題本空空如也喔！";
-                document.getElementById('feedback').style.color = '#4CAF50';
-                return;
-            }
-            this.currentWordList = [...pool];
-            this.shuffle(this.currentWordList);
-            this.wordIndex = 0;
-            this.errorList = [];
-            this.isGameActive = true;
-            this.isReviewMode = true;
-            this.isImmediateRetry = false;
-            this.isStarredMode = false;
-            
-            document.getElementById('nav-btn').textContent = '➡️ 跳過此單字';
-            document.getElementById('repeat-btn').disabled = false;
-            this.loadNextWord();
         }
     };
 
