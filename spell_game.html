@@ -3,343 +3,634 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>英文聽寫練習機</title>
-    <style>
+    <title>英文聽寫練習機 👧🏻👦🏻</title>
+<style>
         :root {
-            --main-blue: #5CB8E6;
-            --main-pink: #FFB3C1;
-            --main-yellow: #FFD93D;
+            /* 🐣 吉伊卡哇配色系統 */
+            --main-blue: #5FAAE1;        /* 小八貓 - 主色 */
+            --main-blue-dark: #2A6199;   /* 小八貓深藍 - 陰影/文字 */
+            --main-blue-light: #D2E7F7;  /* 小八貓淺藍 - 底色區塊 */
+            --main-pink: #FCD7DE;        /* 吉伊卡哇 - 腮紅粉 */
+            --main-pink-dark: #E88CA3;   /* 腮紅粉深色 - 邊框/陰影 */
+            --main-yellow: #FCE883;      /* 烏薩奇 - 瘋狂黃 */
+            --main-yellow-dark: #E4C746; /* 烏薩奇陰影黃 */
+            --main-purple: #D1C2E0;      /* 小桃鼠 - 傲嬌紫 */
+            --main-purple-dark: #9E86BA; /* 小桃鼠深紫 */
             --bg-light: #FFFFFF;
-            --text-dark: #333333;
+            --text-dark: #5d4037;        /* 溫柔咖啡棕，取代死板深灰 */
         }
         * { 
             touch-action: manipulation; 
             -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
         }
         body { 
             font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; 
-            background-color: #E1F4FF; 
+            background-color: #F5FAFF; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
             padding: 10px; 
             margin: 0;
-            color: var(--main-blue);
+            color: var(--text-dark);
             overflow-x: hidden;
         }
         .slot-correct { background-color: #C6EFCE !important; color: #006100 !important; border-color: #006100 !important; }
         .slot-wrong { background-color: #FFC7CE !important; color: #9C0006 !important; border-color: #9C0006 !important; }
         
+        .page-header {
+            width: 98%; max-width: 1000px; display: flex; justify-content: flex-start;
+            margin-bottom: 10px;
+        }
+        .btn-home {
+            text-decoration: none; background: var(--main-yellow); padding: 6px 14px;
+            border-radius: 15px; font-weight: bold; border: 2px solid var(--text-dark);
+            font-size: 0.95rem; color: var(--text-dark); display: inline-flex;
+            align-items: center; gap: 6px;
+        }
+        .btn-home svg { flex-shrink: 0; }
+
         #game-container { 
             width: 98%; max-width: 1000px; border: 6px solid var(--main-blue); 
             background-color: var(--bg-light); border-radius: 20px; 
-            box-shadow: 0 5px 0px #A4D8F0; padding: 10px 20px; text-align: center; box-sizing: border-box;
+            box-shadow: 0 6px 0px var(--main-blue-light); padding: 15px; text-align: center;
         }
 
         #selection-bar { 
-            background: #F0F8FF;         /* 淺藍色背景 */
-            padding: 8px 15px; 
-            border-radius: 15px; 
-            margin-bottom: 15px; 
+            background: var(--main-blue-light); padding: 10px; border-radius: 15px; 
+            margin-bottom: 15px; display: flex; align-items: center; 
+            justify-content: center; gap: 10px; border: 2px solid var(--main-blue);
+            flex-wrap: wrap;
+        }
+        .control-label { font-weight: bold; font-size: 16px; }
+        select { padding: 6px; border-radius: 8px; border: 2px solid var(--main-blue); font-size: 16px; font-weight: bold; }
+        .quiz-count-input { width: 60px; padding: 6px; border-radius: 8px; border: 2px solid var(--main-blue); font-size: 16px; font-weight: bold; text-align: center; }
+        
+        #input-area { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 15px auto; min-height: 65px; }
+        .letter-slot { width: 45px; height: 60px; line-height: 54px; font-size: 36px; font-weight: bold; border: 3px solid var(--main-blue); border-radius: 10px; background: #FFF; color: var(--main-blue-dark); text-align: center; }
+        .space-slot { width: 30px; }
+
+        #hint-display { font-size: 24px; font-weight: bold; color: var(--main-purple-dark); margin-bottom: 5px; min-height: 32px; }
+        #feedback { font-size: 22px; font-weight: bold; color: #FF5252; min-height: 30px; margin-bottom: 10px; }
+        
+        /* ================= 🚀 iPad 專用兒童大鍵盤改版區塊 ================= */
+        #keyboard { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px;             /* 加大每一排之間的上下距離 */
+            margin: 20px auto; 
+            max-width: 850px;       /* 限制最大寬度，防止 iPad 橫放時被拉得太扁 */
+            width: 100%;
+            padding: 0 10px;
+        }
+        .kb-row { 
+            display: flex; 
+            justify-content: center; 
+            gap: 12px;             /* 加大按鍵左右間距，完美防止小手指誤觸 */
+            width: 100%;
+        }
+        .key { 
+            background-color: var(--main-blue); 
+            border: none; 
+            flex: 1;               /* 讓按鍵依螢幕寬度自動延伸 */
+            min-width: 50px;
+            max-width: 75px;       /* 限制按鍵最大寬度，維持漂亮的接近正方形 */
+            height: 65px;          /* 撐高高度，在 iPad 上超級好點點擊 */
+            font-size: 32px;       /* 字母放大，讓弟弟看得更清楚 */
+            font-weight: 900;      /* 極粗體 */
+            border-radius: 14px;   /* 更圓潤、有玩具感的圓角 */
+            cursor: pointer; 
+            color: white; 
+            box-shadow: 0 6px 0px var(--main-blue-dark); /* 更明顯的立體果凍按鍵感 */
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            gap: 10px; 
-            border: 2px solid var(--main-blue); /* 藍色外框 */
+            transition: all 0.05s ease;
+            -webkit-tap-highlight-color: transparent; /* 拔除 iOS 點擊時的灰色陰影 */
         }
-        /* 「範圍：」這三個字的字體與顏色 */
-        .control-label { 
-            font-weight: bold; 
-            font-size: 16px; 
-            color: var(--text-dark); 
+        .key:active { 
+            transform: translateY(4px); 
+            box-shadow: 0 2px 0px var(--main-blue-dark); 
         }
         
-        /* 下拉選單的設計：藍色外框、適中字體 */
-        select { 
-            padding: 5px; 
-            border-radius: 8px; 
-            border: 2px solid var(--main-blue); 
-            font-size: 16px; 
-            font-weight: bold; 
-            background: white; 
+        /* 刪除鍵放大、加寬 */
+        #delete-key { 
+            max-width: 115px;      /* 刪除鍵加寬，符合右手大拇指按壓範圍 */
+            background-color: var(--main-pink); 
+            color: var(--main-pink-dark);
+            box-shadow: 0 6px 0px var(--main-pink-dark); 
+            font-size: 22px; 
         }
-        #input-area { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 10px auto; min-height: 65px; }
-        .letter-slot { width: 42px; height: 60px; line-height: 58px; font-size: 38px; font-weight: bold; border: 3px solid var(--main-blue); border-radius: 10px; background: #FFF; color: var(--main-blue); text-align: center; }
-        .space-slot { width: 30px; }
-
-        #hint-display { font-size: 24px; font-weight: bold; color: #E67E22; margin-bottom: 5px; }
-        #feedback { font-size: 20px; font-weight: bold; color: #FF5252; min-height: 24px; margin-bottom: 5px; }
+        #delete-key:active {
+            box-shadow: 0 2px 0px var(--main-pink-dark);
+        }
+        /* =============================================================== */
         
-        #keyboard { display: flex; flex-direction: column; gap: 10px; margin: 10px auto; max-width: 900px; }
-        .kb-row { display: flex; justify-content: center; gap: 8px; }
-        .key { background-color: #A4E2FF; border: none; width: 60px; height: 60px; font-size: 24px; font-weight: bold; border-radius: 12px; cursor: pointer; color: white; box-shadow: 0 4px 0px #5CB8E6; display: flex; align-items: center; justify-content: center; }
-        .key:active { transform: translateY(2px); box-shadow: 0 2px 0px #5CB8E6; }
-        #delete-key { width: 90px; background-color: #999; box-shadow: 0 4px 0px #666; }
+        #controls { display: flex; justify-content: center; gap: 15px; margin-bottom: 10px; flex-wrap: wrap; }
+        .control-btn { width: 150px; padding: 12px 10px; font-size: 18px; font-weight: bold; border: none; border-radius: 15px; cursor: pointer; color: white; transition: all 0.1s; }
+        .control-btn:disabled { background-color: #CCC !important; box-shadow: 0 4px 0px #999 !important; opacity: 0.6; cursor: not-allowed; }
         
-        #controls { display: flex; justify-content: center; gap: 15px; margin-bottom: 15px; }
-        .control-btn { flex: none; width: 140px; padding: 15px 10px; font-size: 18px; font-weight: bold; border: none; border-radius: 15px; cursor: pointer; color: white; }
-        
-        /* 配色設定 */
-        #nav-btn { background-color: #FF9F43; box-shadow: 0 4px 0px #E67E22; } /* 橘色 */
-        #repeat-btn { background-color: #4CAF50; box-shadow: 0 4px 0px #388E3C; } /* 綠色 */
-        #check-btn { background-color: #00BCD4; box-shadow: 0 4px 0px #0097A7; } /* 藍色 */
-    </style>
+        #nav-btn { background-color: var(--main-blue); box-shadow: 0 4px 0px var(--main-blue-dark); }
+        #repeat-btn { background-color: var(--main-purple-dark); box-shadow: 0 4px 0px #7A6293; }
+        #check-btn { background-color: var(--main-yellow-dark); color: var(--text-dark); box-shadow: 0 4px 0px #C9A83A; }
+</style>
 </head>
 <body>
 
+<div class="page-header">
+    <a href="https://liliancir0125.github.io/Rumi_Study_Hall/" class="btn-home"><svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polygon points="12,3 21,11 3,11" fill="var(--main-pink)" stroke="var(--text-dark)" stroke-width="1.8" stroke-linejoin="round"/><rect x="5" y="11" width="14" height="10" rx="2.5" fill="#FFFFFF" stroke="var(--text-dark)" stroke-width="1.8"/><rect x="10" y="15" width="4" height="6" rx="1.5" fill="var(--main-blue)" stroke="var(--text-dark)" stroke-width="1.4"/><circle cx="16.5" cy="15.5" r="1.4" fill="var(--main-yellow-dark)" stroke="var(--text-dark)" stroke-width="1"/></svg> 回大廳</a>
+</div>
 <div id="game-container">
-    <h2>🦊 英文聽寫練習機 🎓</h2>
+    <h2>👧🏻 英文聽寫練習機 👦🏻</h2>
     
     <div id="selection-bar">
-        <span class="control-label">範圍：</span>
+        <span class="control-label">從:</span>
+        <select id="start-grade-select"></select>
         <select id="start-unit-select"></select>
-        <span>~</span><select id="end-unit-select"></select>
-        <button id="review-book-btn" onclick="startWrongWordMode()" style="background-color: var(--main-pink); border: 2px solid #FF80AB; color: #C2185B; font-weight: bold; padding: 6px 15px; border-radius: 10px; cursor: pointer;">📝 錯題本 (0)</button>
+        <span class="control-label">到:</span>
+        <select id="end-grade-select"></select>
+        <select id="end-unit-select"></select>
+        <span class="control-label">🎯抽題數:</span>
+        <input type="number" id="quiz-count-input" min="1" placeholder="全部" class="quiz-count-input">
+        <button id="review-book-btn" onclick="stateManager.startWrongWordMode()" style="background-color: var(--main-pink); border: 2px solid var(--main-pink-dark); color: #A15870; font-weight: bold; padding: 6px 15px; border-radius: 10px; cursor: pointer;">📝 錯題本 (0)</button>
     </div>
-    <div id="hint-display">準備好了嗎？點擊開始！</div>
+    <div id="hint-display">準備好了嗎？點擊下方開始遊戲吧！</div>
     <div id="feedback"></div>
     <div id="input-area"></div>
     <div id="controls">
-        <button id="nav-btn" class="control-btn" onclick="handleNavAction()">🚀 開始遊戲</button>
-        <button id="repeat-btn" class="control-btn" onclick="readWord(currentWord)" disabled>🔊 再聽一次</button>
-        <button id="check-btn" class="control-btn" onclick="handleMainAction()" disabled>✅ 對答案</button>
+        <button id="nav-btn" class="control-btn" onclick="stateManager.handleNavAction()">🚀 開始遊戲</button>
+        <button id="repeat-btn" class="control-btn" onclick="stateManager.repeatVoice()" disabled>🔊 再聽一次</button>
+        <button id="check-btn" class="control-btn" onclick="stateManager.handleMainAction()" disabled>✅ 對答案</button>
     </div>
     <div id="keyboard"></div>
 </div>
 
 <script>
-    let allWordUnits = {}, currentWord = "", currentSpelling = [], currentWordList = [], wordIndex = 0, errorList = [];
-    let isGameActive = false, isReviewMode = false, flatUnits = [];
-    const synth = window.speechSynthesis;
-    const praiseWords = ["Great job", "Excellent", "Amazing", "Well done"];
+    // 封裝核心狀態，避免全域變數汙染，提升維護性
+    const stateManager = {
+        allWordUnits: {},
+        flatUnits: [],
+        currentWordList: [],
+        wordIndex: 0,
+        errorList: [],
+        currentWord: "",
+        currentSpeakWord: "", // 4. 唸法可跟答案不同（例如 G0 唸 Apple，答案填 A）
+        hasMistakeThisWord: false, // 3. 本題本輪是否曾經拼錯過（嚴格版錯題本判定用）
+        currentSpelling: [],
+        isGameActive: false,
+        isReviewMode: false,
+        isImmediateRetry: false, // 考完立刻複習用的旗標，跟錯題本刪除邏輯完全無關
+        currentActionState: "CHECK", // "CHECK" 或 "RESET"
+        slotElements: [], // 快取當前單字的 DOM 節點，大幅優化效能
 
-    const azLayout = ["ABCDEFGHI", "JKLMNOPQR", "STUVWXYZ"];
-
-    function initSelection() {
-        const startSel = document.getElementById('start-unit-select');
-        const endSel = document.getElementById('end-unit-select');
-
-        // 只保留這行乾淨的程式碼，其餘 Git 符號都刪掉
-        ["G0", "G1", "G2", "G3"].forEach(g => Object.keys(allWordUnits[g]).forEach(u => flatUnits.push({ grade: g, unit: u })));
-
-        flatUnits.forEach((item, idx) => {
-            const label = `${item.grade}-${item.unit}`;
-            startSel.add(new Option(label, idx)); endSel.add(new Option(label, idx));
-        });
-        updateWrongWordCount();
-    }
-
-    function createKeyboard() {
-        const kb = document.getElementById('keyboard');
-        azLayout.forEach((row, idx) => {
-            const div = document.createElement('div'); div.className = 'kb-row';
-            row.split('').forEach(l => {
-                const b = document.createElement('button'); b.className = 'key'; b.textContent = l; b.onclick = () => handleKeyClick(l); div.appendChild(b);
+        // 1. 安全初始化，防止遠端資料異常崩潰
+        init(data) {
+            this.allWordUnits = data;
+            const expectedGrades = ["G0", "G1", "G2", "G3"];
+            expectedGrades.forEach(g => {
+                if (this.allWordUnits[g]) {
+                    Object.keys(this.allWordUnits[g]).forEach(u => {
+                        this.flatUnits.push({ grade: g, unit: u });
+                    });
+                }
             });
-            if (idx === 2) {
-                const del = document.createElement('button'); del.id = 'delete-key'; del.className = 'key'; del.textContent = 'DEL'; del.onclick = handleDelete; div.appendChild(del);
-            }
-            kb.appendChild(div);
-        });
-    }
 
-    function handleNavAction() {
-        if (!isGameActive) {
-            startGame();
-            document.getElementById('nav-btn').textContent = '➡️ 下一個單字';
+            const startGradeSel = document.getElementById('start-grade-select');
+            const endGradeSel = document.getElementById('end-grade-select');
+            const startUnitSel = document.getElementById('start-unit-select');
+            const endUnitSel = document.getElementById('end-unit-select');
+
+            expectedGrades.forEach(g => {
+                if (this.allWordUnits[g]) {
+                    startGradeSel.add(new Option(g, g));
+                    endGradeSel.add(new Option(g, g));
+                }
+            });
+
+            this.populateUnitSelect(startGradeSel.value, startUnitSel);
+            this.populateUnitSelect(endGradeSel.value, endUnitSel);
+
+            startGradeSel.onchange = () => this.populateUnitSelect(startGradeSel.value, startUnitSel);
+            endGradeSel.onchange = () => this.populateUnitSelect(endGradeSel.value, endUnitSel);
+
+            // 預設「到」直接選到最後一個年級/單元，符合大部分人「整個範圍」的直覺
+            if (endGradeSel.options.length > 0) {
+                endGradeSel.selectedIndex = endGradeSel.options.length - 1;
+                this.populateUnitSelect(endGradeSel.value, endUnitSel);
+                endUnitSel.selectedIndex = endUnitSel.options.length - 1;
+            }
+
+            this.updateWrongWordCountUI();
+            this.createKeyboardUI();
+        },
+
+        // 1. 先選年級，才會出現該年級底下的單元選項（兩層選單，年級跟單元同時可見）
+        populateUnitSelect(grade, selectEl) {
+            selectEl.innerHTML = '';
+            if (this.allWordUnits[grade]) {
+                Object.keys(this.allWordUnits[grade]).forEach(u => {
+                    selectEl.add(new Option(u, u));
+                });
+            }
+        },
+
+        // 依（年級, 單元）找出在 flatUnits 中的位置
+        findFlatIndex(grade, unit) {
+            return this.flatUnits.findIndex(f => f.grade === grade && f.unit === unit);
+        },
+
+        // 2. 建立更具視覺辨識度的兒童鍵盤
+        createKeyboardUI() {
+            const kb = document.getElementById('keyboard');
+            kb.innerHTML = '';
+            
+            // 依然是寶貝們最熟悉的 ABC 順序，但完美分配到三排，每排按鈕數更平均！
+            const azLayout = [
+                ["A", "B", "C", "D", "E", "F", "G", "H", "I"],
+                ["J", "K", "L", "M", "N", "O", "P", "Q", "R"],
+                ["S", "T", "U", "V", "W", "X", "Y", "Z"]
+            ];
+
+            azLayout.forEach((row, idx) => {
+                const div = document.createElement('div');
+                div.className = 'kb-row';
+                
+                row.forEach(l => {
+                    const b = document.createElement('button');
+                    b.className = 'key';
+                    b.textContent = l;
+                    b.onclick = () => this.handleKeyClick(l);
+                    div.appendChild(b);
+                });
+                
+                // 把「刪除鍵」優雅地放在第三排的最後面，寬度會自動配合我們寫的 CSS 放大
+                if (idx === 2) {
+                    const del = document.createElement('button');
+                    del.id = 'delete-key';
+                    del.className = 'key';
+                    del.textContent = '刪除 ↩'; 
+                    del.onclick = () => this.handleDelete();
+                    div.appendChild(del);
+                }
+                kb.appendChild(div);
+            });
+        },
+
+        // 3. 公平洗牌演算法 (Fisher-Yates)
+        shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        },
+
+        handleNavAction() {
+            if (!this.isGameActive) {
+                this.startGame();
+            } else {
+                this.handleSkip();
+            }
+        },
+
+        startGame() {
+            const sg = document.getElementById('start-grade-select').value;
+            const su = document.getElementById('start-unit-select').value;
+            const eg = document.getElementById('end-grade-select').value;
+            const eu = document.getElementById('end-unit-select').value;
+            let s = this.findFlatIndex(sg, su);
+            let e = this.findFlatIndex(eg, eu);
+            if (s === -1 || e === -1) return;
+            if (s > e) { [s, e] = [e, s]; } // 自動幫忙交換，選反了也不會失敗
+
+            this.currentWordList = [];
+            for (let i = s; i <= e; i++) {
+                const { grade, unit } = this.flatUnits[i];
+                if (this.allWordUnits[grade] && this.allWordUnits[grade][unit]) {
+                    this.currentWordList = this.currentWordList.concat(this.allWordUnits[grade][unit]);
+                }
+            }
+            
+            this.shuffle(this.currentWordList);
+
+            // 2. 自訂抽題數：數量足夠才裁切，不夠就全部考、不湊數
+            const countVal = document.getElementById('quiz-count-input').value;
+            const n = parseInt(countVal);
+            if (!isNaN(n) && n > 0 && n < this.currentWordList.length) {
+                this.currentWordList = this.currentWordList.slice(0, n);
+            }
+
+            this.wordIndex = 0;
+            this.errorList = [];
+            this.isGameActive = true;
+            this.isReviewMode = false;
+            this.isImmediateRetry = false;
+            
+            document.getElementById('nav-btn').textContent = '➡️ 跳過此單字';
             document.getElementById('repeat-btn').disabled = false;
-        } else {
-            handleSkip();
-        }
-    }
+            this.loadNextWord();
+        },
 
-    function startGame() {
-        const s = parseInt(document.getElementById('start-unit-select').value);
-        const e = parseInt(document.getElementById('end-unit-select').value);
-        if (s > e) return;
-        currentWordList = [];
-        for (let i = s; i <= e; i++) {
-            const {grade, unit} = flatUnits[i];
-            currentWordList = currentWordList.concat(allWordUnits[grade][unit]);
-        }
-        currentWordList.sort(() => Math.random() - 0.5);
-        wordIndex = 0; errorList = []; isGameActive = true; isReviewMode = false;
-        loadNextWord();
-    }
-
-    function handleMainAction() {
-        const btn = document.getElementById('check-btn');
-        if (btn.textContent === '✅ 對答案') checkSpelling();
-        else if (btn.textContent === '🔄 重試') {
-            resetInput();
-            btn.textContent = '✅ 對答案';
-            btn.disabled = true;
-        }
-    }
-
-    function loadNextWord() {
-        if (wordIndex >= currentWordList.length) {
-            isReviewMode ? endGame() : handleRoundEnd(); return;
-        }
-        const data = currentWordList[wordIndex];
-        currentWord = data.word.toLowerCase();
-        currentSpelling = Array(currentWord.replace(/\s/g, '').length).fill("");
-        document.getElementById('input-area').innerHTML = '';
-        document.getElementById('feedback').textContent = '';
-        document.getElementById('check-btn').textContent = '✅ 對答案';
-        document.getElementById('check-btn').disabled = true;
-        document.getElementById('hint-display').textContent = `[${isReviewMode?'複習':(wordIndex+1)+'/'+currentWordList.length}] ${data.hint}`;
-        
-        let lIdx = 0;
-        currentWord.split('').forEach(char => {
-            if (char === ' ') {
-                const s = document.createElement('div'); s.className = 'space-slot'; document.getElementById('input-area').appendChild(s);
-            } else {
-                const div = document.createElement('div'); div.className = 'letter-slot'; div.id = `slot-${lIdx++}`; document.getElementById('input-area').appendChild(div);
+        loadNextWord() {
+            if (this.wordIndex >= this.currentWordList.length) {
+                this.handleRoundEnd();
+                return;
             }
-        });
-        readWord(currentWord);
-    }
+            const data = this.currentWordList[this.wordIndex];
+            this.currentWord = data.word.toLowerCase();
+            this.currentSpeakWord = data.speak || data.word; // 4. 有 speak 欄位就唸它，沒有就唸 word 本身
+            this.hasMistakeThisWord = false; // 3. 重置本題的拼錯紀錄
+            const cleanLength = this.currentWord.replace(/\s/g, '').length;
+            this.currentSpelling = Array(cleanLength).fill("");
+            
+            const inputArea = document.getElementById('input-area');
+            inputArea.innerHTML = '';
+            document.getElementById('feedback').textContent = '';
+            
+            this.setCheckButtonState("CHECK", true); // 預設重置為對答案狀態並禁用
+            
+            const prefix = (this.isReviewMode || this.isImmediateRetry) ? '🔥 複習中' : `✏️ 第 ${this.wordIndex + 1}/${this.currentWordList.length} 題`;
+            document.getElementById('hint-display').textContent = `[${prefix}] ${data.hint}`;
+            
+            this.slotElements = []; // 清空快取
+            let lIdx = 0;
+            
+            this.currentWord.split('').forEach(char => {
+                if (char === ' ') {
+                    const s = document.createElement('div');
+                    s.className = 'space-slot';
+                    inputArea.appendChild(s);
+                } else {
+                    const div = document.createElement('div');
+                    div.className = 'letter-slot';
+                    div.id = `slot-${lIdx}`;
+                    inputArea.appendChild(div);
+                    this.slotElements.push(div); // 快取節點提升未來效能
+                    lIdx++;
+                }
+            });
+            this.readWord(this.currentSpeakWord);
+        },
 
-    function handleKeyClick(l) {
-        const target = currentWord.replace(/\s/g, '').toLowerCase();
-        let nextIdx = -1;
-        
-        // 尋找下一個空格填入字母
-        for (let i = 0; i < target.length; i++) {
-            if (!document.getElementById(`slot-${i}`).textContent) {
-                nextIdx = i;
-                break;
+        // 狀態語意化優化：取代不安全的文字內容比對
+        setCheckButtonState(state, isDisabled) {
+            this.currentActionState = state;
+            const btn = document.getElementById('check-btn');
+            btn.disabled = isDisabled;
+            if (state === "CHECK") {
+                btn.textContent = '✅ 對答案';
+                btn.style.backgroundColor = '#00BCD4';
+            } else if (state === "RESET") {
+                btn.textContent = '🔄 再試一次';
+                btn.style.backgroundColor = '#FF9F43';
             }
-        }
-        
-        if (nextIdx !== -1) {
-            currentSpelling[nextIdx] = l.toLowerCase();
-            const slot = document.getElementById(`slot-${nextIdx}`);
-            slot.textContent = l.toLowerCase();
-            slot.classList.remove('slot-wrong');
-        }
-        
-        // 修改處：只要有動作，就確保按鈕是可以點擊的，不檢查是否填滿
-        document.getElementById('check-btn').disabled = false; 
-    }
+        },
 
-    function handleDelete() {
-        const target = currentWord.replace(/\s/g, '').toLowerCase();
-        
-        for (let i = target.length - 1; i >= 0; i--) {
-            const slot = document.getElementById(`slot-${i}`);
-            // 只刪除尚未變為「正確(綠色)」的格子
-            if (slot.textContent && !slot.classList.contains('slot-correct')) {
-                slot.textContent = '';
+        handleKeyClick(letter) {
+            let nextIdx = this.currentSpelling.findIndex(char => char === "");
+            if (nextIdx !== -1) {
+                const lLower = letter.toLowerCase();
+                this.currentSpelling[nextIdx] = lLower;
+                
+                const slot = this.slotElements[nextIdx];
+                slot.textContent = lLower;
                 slot.classList.remove('slot-wrong');
-                currentSpelling[i] = "";
-                break;
+                
+                this.setCheckButtonState("CHECK", false); // 只要有輸入就開放檢查
             }
-        }
-        
-        // 修改處：刪除後依然維持按鈕可點擊狀態（除非全部刪光，看您個人喜好）
-        // 如果您希望全空時不能按，可以改成：
-        const hasInput = currentSpelling.some(char => char !== "");
-        document.getElementById('check-btn').disabled = !hasInput;
-    }
+        },
 
-    function checkSpelling() {
-        const target = currentWord.replace(/\s/g, '').toLowerCase();
-        let allCorrect = true;
-        for (let i = 0; i < target.length; i++) {
-            const slot = document.getElementById(`slot-${i}`);
-            // 增加判斷：如果該格是空的，或者字母不對，就顯示錯誤顏色
-            if (currentSpelling[i] && currentSpelling[i] === target[i]) {
-                slot.className = 'letter-slot slot-correct';
+        handleDelete() {
+            // 從後往前找尋第一個有內容且未對正確的槽進行刪除
+            for (let i = this.currentSpelling.length - 1; i >= 0; i--) {
+                const slot = this.slotElements[i];
+                if (this.currentSpelling[i] !== "" && !slot.classList.contains('slot-correct')) {
+                    this.currentSpelling[i] = "";
+                    slot.textContent = '';
+                    slot.classList.remove('slot-wrong');
+                    break;
+                }
+            }
+            const hasInput = this.currentSpelling.some(char => char !== "");
+            this.setCheckButtonState("CHECK", !hasInput);
+        },
+
+        handleMainAction() {
+            if (this.currentActionState === "CHECK") {
+                this.checkSpelling();
             } else {
-                slot.className = 'letter-slot slot-wrong';
-                allCorrect = false;
+                this.resetInput();
             }
-        }
-        if (allCorrect) {
-            document.getElementById('feedback').textContent = '🌟 太棒了！';
-            if (isReviewMode && !errorList.includes(currentWordList[wordIndex])) removeWrongWord(currentWord);
-            readWord(praiseWords[Math.floor(Math.random() * praiseWords.length)]);
-            setTimeout(() => { wordIndex++; loadNextWord(); }, 1200);
-        } else {
-            document.getElementById('feedback').textContent = '💡 再試一次！';
-            saveWrongWord(currentWordList[wordIndex]);
-            if (!errorList.includes(currentWordList[wordIndex])) errorList.push(currentWordList[wordIndex]);
-            readWord("Try again");
-            const btn = document.getElementById('check-btn'); btn.textContent = '🔄 重試'; btn.disabled = false;
-        }
-    }
+        },
 
-    function resetInput() {
-        const target = currentWord.replace(/\s/g, '').toLowerCase();
-        for (let i = 0; i < target.length; i++) {
-            const slot = document.getElementById(`slot-${i}`);
-            if (currentSpelling[i] !== target[i]) {
-                currentSpelling[i] = ""; slot.textContent = ''; slot.className = 'letter-slot';
+        checkSpelling() {
+            const target = this.currentWord.replace(/\s/g, '').toLowerCase();
+            let allCorrect = true;
+            
+            for (let i = 0; i < target.length; i++) {
+                const slot = this.slotElements[i];
+                if (this.currentSpelling[i] && this.currentSpelling[i] === target[i]) {
+                    slot.className = 'letter-slot slot-correct';
+                } else {
+                    slot.className = 'letter-slot slot-wrong';
+                    allCorrect = false;
+                }
             }
+            
+            if (allCorrect) {
+                document.getElementById('feedback').textContent = '🌟 太棒了！你答對了！';
+                document.getElementById('feedback').style.color = '#4CAF50';
+                
+                // 3. 嚴格版：錯題本複習時，必須這題全程都沒拼錯過，才算「畢業」刪除紀錄
+                if (this.isReviewMode && !this.hasMistakeThisWord) {
+                    this.removeWrongWord(this.currentWord);
+                }
+                
+                const praiseWords = ["Great job", "Excellent", "Amazing", "Well done"];
+                this.readWord(praiseWords[Math.floor(Math.random() * praiseWords.length)]);
+                
+                setTimeout(() => { 
+                    this.wordIndex++; 
+                    this.loadNextWord(); 
+                }, 1500);
+            } else {
+                document.getElementById('feedback').textContent = '💡 沒關係，再試試看喔！';
+                document.getElementById('feedback').style.color = '#FF5252';
+                
+                this.hasMistakeThisWord = true; // 3. 記錄這題本輪曾經拼錯過
+                this.saveWrongWord(this.currentWordList[this.wordIndex]);
+                if (!this.errorList.includes(this.currentWordList[this.wordIndex])) {
+                    this.errorList.push(this.currentWordList[this.wordIndex]);
+                }
+                
+                this.readWord("Try again");
+                this.setCheckButtonState("RESET", false);
+            }
+        },
+
+        resetInput() {
+            const target = this.currentWord.replace(/\s/g, '').toLowerCase();
+            for (let i = 0; i < target.length; i++) {
+                if (this.currentSpelling[i] !== target[i]) {
+                    this.currentSpelling[i] = "";
+                    const slot = this.slotElements[i];
+                    slot.textContent = '';
+                    slot.className = 'letter-slot';
+                }
+            }
+            document.getElementById('feedback').textContent = '';
+            this.setCheckButtonState("CHECK", true);
+        },
+
+        handleSkip() {
+            const target = this.currentWord.replace(/\s/g, '').toLowerCase();
+            for (let i = 0; i < target.length; i++) {
+                const slot = this.slotElements[i];
+                slot.className = (this.currentSpelling[i] === target[i]) ? 'letter-slot slot-correct' : 'letter-slot slot-wrong';
+                slot.textContent = target[i];
+            }
+            document.getElementById('feedback').textContent = `📝 幫你收進複習本囉！`;
+            document.getElementById('feedback').style.color = '#E67E22';
+            
+            this.saveWrongWord(this.currentWordList[this.wordIndex]);
+            if (!this.errorList.includes(this.currentWordList[this.wordIndex])) {
+                this.errorList.push(this.currentWordList[this.wordIndex]);
+            }
+            
+            this.readWord("The answer is " + this.currentWord);
+            setTimeout(() => { 
+                this.wordIndex++; 
+                this.loadNextWord(); 
+            }, 2500);
+        },
+
+        repeatVoice() {
+            this.readWord(this.currentSpeakWord || this.currentWord);
+        },
+
+        readWord(text) {
+            if (!text || !window.speechSynthesis) return;
+            window.speechSynthesis.cancel(); // 清除先前的語音佇列，避免重疊
+            
+            const utter = new SpeechSynthesisUtterance(text.toLowerCase());
+            const voices = window.speechSynthesis.getVoices();
+            // 優先挑選合適的發音庫
+            const f = voices.find(v => v.lang.replace('_', '-').includes('en-US') && 
+                     (v.name.includes('Female') || v.name.includes('Google') || v.name.includes('zoe')));
+            if (f) utter.voice = f;
+            utter.rate = 0.75; // 稍微放慢一點點語速，對5~8歲幼童更清晰
+            window.speechSynthesis.speak(utter);
+        },
+
+        // LocalStorage 管理與 UI 更新
+        getWrongWordsPool() {
+            try {
+                return JSON.parse(localStorage.getItem('wrongWords') || '[]');
+            } catch {
+                return [];
+            }
+        },
+        updateWrongWordCountUI() {
+            const pool = this.getWrongWordsPool();
+            document.getElementById('review-book-btn').textContent = `📝 錯題本 (${pool.length})`;
+        },
+        saveWrongWord(wordData) {
+            let pool = this.getWrongWordsPool();
+            if (!pool.some(w => w.word.toLowerCase() === wordData.word.toLowerCase())) {
+                pool.push(wordData);
+                localStorage.setItem('wrongWords', JSON.stringify(pool));
+                this.updateWrongWordCountUI();
+            }
+        },
+        removeWrongWord(wordStr) {
+            let pool = this.getWrongWordsPool();
+            pool = pool.filter(w => w.word.toLowerCase() !== wordStr.toLowerCase());
+            localStorage.setItem('wrongWords', JSON.stringify(pool));
+            this.updateWrongWordCountUI();
+        },
+
+        // 改良：使用畫面文字提示取代傳統 Alert / Confirm 彈窗，最適合幼童操作
+        // 2. 「馬上複習」只是方便再練一次剛剛錯的字，不會影響錯題本的刪除判定
+        //    錯題本的刪除，只有透過「📝 錯題本」進去、且這次複習全程零失誤才會觸發
+        handleRoundEnd() {
+            if (this.errorList.length > 0) {
+                const reviewWords = [...this.errorList];
+                document.getElementById('hint-display').textContent = `🎉 練習完囉！這次有 ${reviewWords.length} 個字錯過，已經幫你收進錯題本囉！`;
+                document.getElementById('feedback').textContent = '要現在馬上複習這幾個字嗎？點下面的按鈕開始吧！👇';
+                document.getElementById('feedback').style.color = '#E67E22';
+
+                this.errorList = [];
+
+                const btn = document.getElementById('nav-btn');
+                btn.textContent = '🔥 馬上複習';
+                btn.onclick = () => {
+                    this.currentWordList = reviewWords;
+                    this.wordIndex = 0;
+                    this.errorList = [];
+                    this.isGameActive = true;
+                    this.isReviewMode = false;      // 不是錯題本模式，不會刪除紀錄
+                    this.isImmediateRetry = true;   // 純粹方便複習用
+                    document.getElementById('repeat-btn').disabled = false;
+                    btn.textContent = '➡️ 跳過此單字';
+                    btn.onclick = () => this.handleNavAction();
+                    this.loadNextWord();
+                };
+            } else {
+                this.endGame();
+            }
+        },
+
+        endGame() {
+            this.isGameActive = false;
+            document.getElementById('hint-display').textContent = '🎊 哇！全部完成了！你太棒了！';
+            document.getElementById('feedback').textContent = '想再玩一次的話，請點擊「開始遊戲」';
+            document.getElementById('feedback').style.color = '#4CAF50';
+            
+            const navBtn = document.getElementById('nav-btn');
+            navBtn.textContent = '🚀 開始遊戲';
+            navBtn.onclick = () => this.handleNavAction();
+            
+            document.getElementById('repeat-btn').disabled = true;
+            document.getElementById('check-btn').disabled = true;
+            this.slotElements = [];
+        },
+
+        startWrongWordMode() {
+            const pool = this.getWrongWordsPool();
+            if (pool.length === 0) {
+                document.getElementById('feedback').textContent = "✨ 目前錯題本空空如也喔！";
+                document.getElementById('feedback').style.color = '#4CAF50';
+                return;
+            }
+            this.currentWordList = [...pool];
+            this.shuffle(this.currentWordList);
+            this.wordIndex = 0;
+            this.errorList = [];
+            this.isGameActive = true;
+            this.isReviewMode = true;
+            this.isImmediateRetry = false;
+            
+            document.getElementById('nav-btn').textContent = '➡️ 跳過此單字';
+            document.getElementById('repeat-btn').disabled = false;
+            this.loadNextWord();
         }
-    }
-
-    function handleSkip() {
-        const target = currentWord.replace(/\s/g, '').toLowerCase();
-        for (let i = 0; i < target.length; i++) {
-            const slot = document.getElementById(`slot-${i}`);
-            slot.className = (currentSpelling[i] === target[i]) ? 'letter-slot slot-correct' : 'letter-slot slot-wrong';
-            slot.textContent = target[i];
-        }
-        document.getElementById('feedback').textContent = `📝 已記錄在待複習清單裡`;
-        saveWrongWord(currentWordList[wordIndex]);
-        if (!errorList.includes(currentWordList[wordIndex])) errorList.push(currentWordList[wordIndex]);
-        readWord("The answer is");
-        setTimeout(() => readWord(currentWord), 800);
-        setTimeout(() => { wordIndex++; loadNextWord(); }, 2500);
-    }
-
-    function readWord(text) {
-        if (!text) return; synth.cancel();
-        const utter = new SpeechSynthesisUtterance(text.toLowerCase());
-        const voices = synth.getVoices();
-        const f = voices.find(v => v.lang.replace('_', '-').includes('en-US') && (v.name.includes('Female') || v.name.includes('Google') || v.name.includes('zoe')));
-        if (f) utter.voice = f; utter.rate = 0.8; synth.speak(utter);
-    }
-
-    function updateWrongWordCount() {
-        const book = JSON.parse(localStorage.getItem('wrongWords') || '[]');
-        document.getElementById('review-book-btn').textContent = `📝 錯題本 (${book.length})`;
-    }
-    function saveWrongWord(d) {
-        let b = JSON.parse(localStorage.getItem('wrongWords') || '[]');
-        if (!b.find(w => w.word.toLowerCase() === d.word.toLowerCase())) { b.push(d); localStorage.setItem('wrongWords', JSON.stringify(b)); updateWrongWordCount(); }
-    }
-    function removeWrongWord(t) {
-        let b = JSON.parse(localStorage.getItem('wrongWords') || '[]');
-        b = b.filter(w => w.word.toLowerCase() !== t.toLowerCase()); localStorage.setItem('wrongWords', JSON.stringify(b)); updateWrongWordCount();
-    }
-    function handleRoundEnd() {
-        if (errorList.length > 0 && confirm(`結束！有 ${errorList.length} 個字錯了，要現在複習嗎？`)) {
-            currentWordList = [...errorList]; wordIndex = 0; errorList = []; isReviewMode = true; loadNextWord();
-        } else endGame();
-    }
-    function endGame() {
-        isGameActive = false; document.getElementById('hint-display').textContent = '🎊 恭喜妳完成練習！';
-        document.getElementById('nav-btn').textContent = '🚀 開始遊戲'; document.getElementById('repeat-btn').disabled = true;
-        document.getElementById('check-btn').disabled = true;
-    }
-    function startWrongWordMode() {
-        const b = JSON.parse(localStorage.getItem('wrongWords') || '[]');
-        if (b.length === 0) { alert("沒有錯題！"); return; }
-        currentWordList = [...b].sort(() => Math.random() - 0.5); wordIndex = 0; errorList = []; isGameActive = true; isReviewMode = true;
-        document.getElementById('nav-btn').textContent = '➡️ 下一個單字'; document.getElementById('repeat-btn').disabled = false; loadNextWord();
-    }
+    };
 
     window.onload = async () => {
-        synth.getVoices();
-        if (speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = () => synth.getVoices();
+        if (window.speechSynthesis) {
+            window.speechSynthesis.getVoices();
+            if (speechSynthesis.onvoiceschanged !== undefined) {
+                speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+            }
+        }
+        
         try {
-            const r = await fetch('https://raw.githubusercontent.com/liliancir0125/spell-game/refs/heads/main/word_bank.json');
-            allWordUnits = await r.json(); initSelection(); createKeyboard();
-        } catch (e) { document.getElementById('hint-display').textContent = "❌ 無法載入單字庫"; }
+            const response = await fetch('https://raw.githubusercontent.com/liliancir0125/spell-game/refs/heads/main/word_bank.json');
+            if (!response.ok) throw new Error();
+            const data = await response.json();
+            stateManager.init(data);
+        } catch (e) {
+            document.getElementById('hint-display').textContent = "❌ 單字庫載入失敗，請檢查網路。";
+        }
     };
 </script>
 </body>
