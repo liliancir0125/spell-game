@@ -65,6 +65,7 @@
         .control-label { font-weight: bold; font-size: 16px; }
         #range-controls { display: contents; }
         select { padding: 6px; border-radius: 8px; border: 2px solid var(--main-blue); font-size: 16px; font-weight: bold; }
+        select:disabled { background: #eee; color: #aaa; border-color: #ccc; cursor: not-allowed; }
         .quiz-count-input { width: 60px; padding: 6px; border-radius: 8px; border: 2px solid var(--main-blue); font-size: 16px; font-weight: bold; text-align: center; }
         #starred-toggle-btn {
             background: white; border: 2px solid var(--main-yellow-dark); color: var(--text-dark);
@@ -215,9 +216,9 @@
         </div>
         <div id="study-word"></div>
         <div id="study-controls">
-            <button class="control-btn" style="background: var(--main-purple-dark); box-shadow: 0 4px 0px #7A6293;" onclick="stateManager.studyPrev()">⬅️ 上一個</button>
-            <button class="control-btn" style="background: var(--main-yellow-dark); color: var(--text-dark); box-shadow: 0 4px 0px #C9A83A;" onclick="stateManager.studySpeak()">🔊 再聽一次</button>
-            <button class="control-btn" style="background: var(--main-blue); box-shadow: 0 4px 0px var(--main-blue-dark);" onclick="stateManager.studyNext()">下一個 ➡️</button>
+            <button id="study-prev-btn" class="control-btn" style="background: var(--main-purple-dark); box-shadow: 0 4px 0px #7A6293;" onclick="stateManager.studyPrev()">⬅️ 上一個</button>
+            <button id="study-speak-btn" class="control-btn" style="background: var(--main-yellow-dark); color: var(--text-dark); box-shadow: 0 4px 0px #C9A83A;" onclick="stateManager.studySpeak()">🔊 再聽一次</button>
+            <button id="study-next-btn" class="control-btn" style="background: var(--main-blue); box-shadow: 0 4px 0px var(--main-blue-dark);" onclick="stateManager.studyNext()">下一個 ➡️</button>
         </div>
     </div>
 </div>
@@ -382,13 +383,11 @@
             
             this.shuffle(this.currentWordList);
 
-            // 2. 自訂抽題數：只在「全部單字」時套用，重點複習池不裁切
-            if (this.sourceMode === 'all') {
-                const countVal = document.getElementById('quiz-count-input').value;
-                const n = parseInt(countVal);
-                if (!isNaN(n) && n > 0 && n < this.currentWordList.length) {
-                    this.currentWordList = this.currentWordList.slice(0, n);
-                }
+            // 2. 自訂抽題數：不論來源是「全部單字」還是「⭐ 重點複習」都套用，數量不夠就全部考、不湊數
+            const countVal = document.getElementById('quiz-count-input').value;
+            const n = parseInt(countVal);
+            if (!isNaN(n) && n > 0 && n < this.currentWordList.length) {
+                this.currentWordList = this.currentWordList.slice(0, n);
             }
 
             this.wordIndex = 0;
@@ -652,7 +651,24 @@
         setSource(source) {
             this.sourceMode = source;
             document.getElementById('starred-toggle-btn').classList.toggle('active', source === 'starred');
-            document.getElementById('range-controls').style.display = source === 'starred' ? 'none' : 'contents';
+
+            const rangeSelectIds = ['start-grade-select', 'start-unit-select', 'end-grade-select', 'end-unit-select'];
+            if (source === 'starred') {
+                // 記住原本選的範圍，離開重點複習時可以還原
+                this.savedRangeValues = rangeSelectIds.map(id => document.getElementById(id).value);
+                rangeSelectIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    el.disabled = true;
+                    el.value = ''; // 沒有對應選項時，原生下拉選單會顯示空白
+                });
+            } else {
+                rangeSelectIds.forEach((id, i) => {
+                    const el = document.getElementById(id);
+                    el.disabled = false;
+                    if (this.savedRangeValues) el.value = this.savedRangeValues[i];
+                });
+            }
+
             this.reloadCurrentView();
         },
 
@@ -731,12 +747,14 @@
                 document.getElementById('study-hint-text').textContent = msg;
                 document.getElementById('study-star').style.display = 'none';
                 document.getElementById('study-word').textContent = '';
+                this.updateStudyButtonStates();
                 return;
             }
             if (this.studyCompleted) {
                 document.getElementById('study-hint-text').textContent = '';
                 document.getElementById('study-star').style.display = 'none';
                 document.getElementById('study-word').textContent = '🎉 恭喜學習完畢！';
+                this.updateStudyButtonStates();
                 return;
             }
             document.getElementById('study-star').style.display = 'inline';
@@ -745,7 +763,31 @@
             document.getElementById('study-hint-text').textContent = `[${prefix}] ${data.hint}`;
             document.getElementById('study-word').textContent = data.word;
             document.getElementById('study-star').textContent = this.isStarred(data.word) ? '⭐' : '☆';
+            this.updateStudyButtonStates();
             this.studySpeak();
+        },
+
+        // 🚧 防呆：學習模式的按鈕也要跟測驗模式一樣，沒作用的時候要變灰色、不能按
+        updateStudyButtonStates() {
+            const prevBtn = document.getElementById('study-prev-btn');
+            const speakBtn = document.getElementById('study-speak-btn');
+            const nextBtn = document.getElementById('study-next-btn');
+
+            if (this.studyList.length === 0) {
+                prevBtn.disabled = true;
+                speakBtn.disabled = true;
+                nextBtn.disabled = true;
+                return;
+            }
+            if (this.studyCompleted) {
+                prevBtn.disabled = false;  // 還是可以回去看最後一張
+                speakBtn.disabled = true;  // 完成畫面沒有單字可以唸
+                nextBtn.disabled = true;   // 已經是最後一張了
+                return;
+            }
+            prevBtn.disabled = (this.studyIndex === 0); // 第一張時「上一個」沒有作用
+            speakBtn.disabled = false;
+            nextBtn.disabled = false; // 最後一張按下去會進入「恭喜完成」畫面，所以永遠可按
         },
 
         studySpeak() {
@@ -755,11 +797,11 @@
         },
 
         studyNext() {
-            if (this.studyList.length === 0) return;
+            if (this.studyList.length === 0 || this.studyCompleted) return;
             if (this.studyIndex < this.studyList.length - 1) {
                 this.studyIndex++;
                 this.renderStudyCard();
-            } else if (!this.studyCompleted) {
+            } else {
                 this.studyCompleted = true;
                 this.renderStudyCard();
             }
