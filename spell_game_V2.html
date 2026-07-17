@@ -211,14 +211,14 @@
 
     <div id="study-area" style="display:none;">
         <div id="study-hint-row">
-            <span id="study-hint-text"></span>
-            <span id="study-star" onclick="stateManager.toggleStar()">☆</span>
+            <span id="study-hint-text">準備好了嗎？點擊下方開始學習吧！</span>
+            <span id="study-star" onclick="stateManager.toggleStar()" style="display:none;">☆</span>
         </div>
         <div id="study-word"></div>
         <div id="study-controls">
-            <button id="study-prev-btn" class="control-btn" style="background: var(--main-purple-dark); box-shadow: 0 4px 0px #7A6293;" onclick="stateManager.studyPrev()">⬅️ 上一個</button>
-            <button id="study-speak-btn" class="control-btn" style="background: var(--main-yellow-dark); color: var(--text-dark); box-shadow: 0 4px 0px #C9A83A;" onclick="stateManager.studySpeak()">🔊 再聽一次</button>
-            <button id="study-next-btn" class="control-btn" style="background: var(--main-blue); box-shadow: 0 4px 0px var(--main-blue-dark);" onclick="stateManager.studyNext()">下一個 ➡️</button>
+            <button id="study-prev-btn" class="control-btn" style="background: var(--main-purple-dark); box-shadow: 0 4px 0px #7A6293;" onclick="stateManager.studyPrev()" disabled>⬅️ 上一個</button>
+            <button id="study-speak-btn" class="control-btn" style="background: var(--main-yellow-dark); color: var(--text-dark); box-shadow: 0 4px 0px #C9A83A;" onclick="stateManager.studySpeak()" disabled>🔊 再聽一次</button>
+            <button id="study-next-btn" class="control-btn" style="background: var(--main-blue); box-shadow: 0 4px 0px var(--main-blue-dark);" onclick="stateManager.handleStudyNavAction()">🚀 開始學習</button>
         </div>
     </div>
 </div>
@@ -241,6 +241,7 @@
         viewMode: 'quiz',  // 'quiz'（測驗）或 'study'（學習卡片）
         studyList: [], // 學習模式用的單字清單（依序、不洗牌）
         studyIndex: 0,
+        studyStarted: false, // 跟測驗模式一樣，要按下開始才會真正載入內容
         studyCompleted: false,
         currentActionState: "CHECK", // "CHECK" 或 "RESET"
         slotElements: [], // 快取當前單字的 DOM 節點，大幅優化效能
@@ -649,6 +650,7 @@
         },
 
         setSource(source) {
+            if (this.sourceMode === source) return; // 沒有真的切換來源，不要打斷進行中的內容
             this.sourceMode = source;
             document.getElementById('starred-toggle-btn').classList.toggle('active', source === 'starred');
 
@@ -673,6 +675,7 @@
         },
 
         setViewMode(mode) {
+            if (this.viewMode === mode) return; // 沒有真的切換模式，不要打斷進行中的內容
             this.viewMode = mode;
             document.getElementById('mode-quiz-btn').classList.toggle('active', mode === 'quiz');
             document.getElementById('mode-study-btn').classList.toggle('active', mode === 'study');
@@ -681,10 +684,10 @@
             this.reloadCurrentView();
         },
 
-        // 每次切換來源或模式，都重新回到「未開始」的乾淨狀態，不會卡在某個畫面出不來
+        // 每次切換來源或模式，都重新回到「未開始」的乾淨待機狀態，不會卡在某個畫面出不來
         reloadCurrentView() {
             if (this.viewMode === 'study') {
-                this.startStudyMode();
+                this.resetStudyIdle();
             } else {
                 this.resetQuizIdle();
             }
@@ -715,7 +718,30 @@
         },
 
         // ========== 📖 單字學習模式（卡片式，無壓力，不需要輸入答案） ==========
-        startStudyMode() {
+        // 待機狀態：跟 resetQuizIdle 完全對稱，切換來源/模式時回到這裡，按鈕要正確變灰
+        resetStudyIdle() {
+            this.studyStarted = false;
+            this.studyList = [];
+            this.studyIndex = 0;
+            this.studyCompleted = false;
+            document.getElementById('study-hint-text').textContent = '準備好了嗎？點擊下方開始學習吧！';
+            document.getElementById('study-star').style.display = 'none';
+            document.getElementById('study-word').textContent = '';
+            document.getElementById('study-prev-btn').disabled = true;
+            document.getElementById('study-speak-btn').disabled = true;
+            document.getElementById('study-next-btn').textContent = '🚀 開始學習';
+        },
+
+        handleStudyNavAction() {
+            if (!this.studyStarted) {
+                this.startStudySession();
+            } else {
+                this.studyNext();
+            }
+        },
+
+        // 按下「🚀 開始學習」才會真正建立單字清單並開始瀏覽，跟測驗模式的 startGame() 對稱
+        startStudySession() {
             if (this.sourceMode === 'starred') {
                 this.studyList = [...this.getStarredWordsPool()];
             } else {
@@ -736,8 +762,19 @@
                     }
                 }
             }
+
+            if (this.studyList.length === 0) {
+                const msg = this.sourceMode === 'starred' ? '⭐ 目前還沒有標記重點單字喔！可以先答錯幾題，或到學習模式標記。' : '這個範圍還沒有單字喔！';
+                document.getElementById('study-hint-text').textContent = msg;
+                return;
+            }
+
+            this.studyStarted = true;
             this.studyIndex = 0;
             this.studyCompleted = false;
+            document.getElementById('study-prev-btn').disabled = false;
+            document.getElementById('study-speak-btn').disabled = false;
+            document.getElementById('study-next-btn').textContent = '下一個 ➡️';
             this.renderStudyCard();
         },
 
@@ -791,13 +828,13 @@
         },
 
         studySpeak() {
-            if (this.studyCompleted || this.studyList.length === 0) return;
+            if (!this.studyStarted || this.studyCompleted || this.studyList.length === 0) return;
             const data = this.studyList[this.studyIndex];
             if (data) this.readWord(data.speak || data.word);
         },
 
         studyNext() {
-            if (this.studyList.length === 0 || this.studyCompleted) return;
+            if (!this.studyStarted || this.studyList.length === 0 || this.studyCompleted) return;
             if (this.studyIndex < this.studyList.length - 1) {
                 this.studyIndex++;
                 this.renderStudyCard();
@@ -808,7 +845,7 @@
         },
 
         studyPrev() {
-            if (this.studyList.length === 0) return;
+            if (!this.studyStarted || this.studyList.length === 0) return;
             if (this.studyCompleted) {
                 this.studyCompleted = false;
                 this.renderStudyCard();
@@ -821,7 +858,7 @@
         },
 
         toggleStar() {
-            if (this.studyCompleted || this.studyList.length === 0) return;
+            if (!this.studyStarted || this.studyCompleted || this.studyList.length === 0) return;
             const data = this.studyList[this.studyIndex];
             if (!data) return;
             if (this.isStarred(data.word)) {
