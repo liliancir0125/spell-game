@@ -142,6 +142,8 @@
         #nav-btn { background-color: var(--main-blue); box-shadow: 0 4px 0px var(--main-blue-dark); }
         #repeat-btn { background-color: var(--main-purple-dark); box-shadow: 0 4px 0px #7A6293; }
         #check-btn { background-color: var(--main-yellow-dark); color: var(--text-dark); box-shadow: 0 4px 0px #C9A83A; }
+        #voice-btn { background-color: #6FCF97; box-shadow: 0 4px 0px #3F9B6B; }
+        #voice-btn.listening { background-color: #E67E22; box-shadow: 0 4px 0px #B2650F; }
 
         /* ========== 📖 單字學習模式 + ⭐ 重點複習 + 🎉 答對小驚喜 ========== */
         #mode-toggle { display: flex; justify-content: center; gap: 10px; margin-bottom: 12px; }
@@ -205,6 +207,7 @@
             <button id="nav-btn" class="control-btn" onclick="stateManager.handleNavAction()">🚀 開始遊戲</button>
             <button id="repeat-btn" class="control-btn" onclick="stateManager.repeatVoice()" disabled>🔊 再聽一次</button>
             <button id="check-btn" class="control-btn" onclick="stateManager.handleMainAction()" disabled>✅ 對答案</button>
+            <button id="voice-btn" class="control-btn" onclick="stateManager.startVoiceInput()" disabled>🎤 語音輸入</button>
         </div>
         <div id="keyboard"></div>
     </div>
@@ -216,9 +219,9 @@
         </div>
         <div id="study-word"></div>
         <div id="study-controls">
-            <button id="study-prev-btn" class="control-btn" style="background: var(--main-purple-dark); box-shadow: 0 4px 0px #7A6293;" onclick="stateManager.studyPrev()" disabled>⬅️ 上一個</button>
-            <button id="study-speak-btn" class="control-btn" style="background: var(--main-yellow-dark); color: var(--text-dark); box-shadow: 0 4px 0px #C9A83A;" onclick="stateManager.studySpeak()" disabled>🔊 再聽一次</button>
             <button id="study-next-btn" class="control-btn" style="background: var(--main-blue); box-shadow: 0 4px 0px var(--main-blue-dark);" onclick="stateManager.handleStudyNavAction()">🚀 開始學習</button>
+            <button id="study-speak-btn" class="control-btn" style="background: var(--main-yellow-dark); color: var(--text-dark); box-shadow: 0 4px 0px #C9A83A;" onclick="stateManager.studySpeak()" disabled>🔊 再聽一次</button>
+            <button id="study-prev-btn" class="control-btn" style="background: var(--main-purple-dark); box-shadow: 0 4px 0px #7A6293;" onclick="stateManager.studyPrev()" disabled>⬅️ 上一個</button>
         </div>
     </div>
 </div>
@@ -245,6 +248,7 @@
         studyCompleted: false,
         currentActionState: "CHECK", // "CHECK" 或 "RESET"
         slotElements: [], // 快取當前單字的 DOM 節點，大幅優化效能
+        voiceSupported: false, // 瀏覽器是否支援語音辨識
 
         // 1. 安全初始化，防止遠端資料異常崩潰
         init(data) {
@@ -398,6 +402,7 @@
             
             document.getElementById('nav-btn').textContent = '➡️ 跳過此單字';
             document.getElementById('repeat-btn').disabled = false;
+            document.getElementById('voice-btn').disabled = !this.voiceSupported;
             this.loadNextWord();
         },
 
@@ -620,6 +625,7 @@
                     this.isGameActive = true;
                     this.isImmediateRetry = true;   // 純粹方便複習用
                     document.getElementById('repeat-btn').disabled = false;
+                    document.getElementById('voice-btn').disabled = !this.voiceSupported;
                     btn.textContent = '➡️ 跳過此單字';
                     btn.onclick = () => this.handleNavAction();
                     this.loadNextWord();
@@ -641,6 +647,7 @@
             
             document.getElementById('repeat-btn').disabled = true;
             document.getElementById('check-btn').disabled = true;
+            document.getElementById('voice-btn').disabled = true;
             this.slotElements = [];
         },
 
@@ -705,6 +712,7 @@
             navBtn.onclick = () => this.handleNavAction();
             document.getElementById('repeat-btn').disabled = true;
             document.getElementById('check-btn').disabled = true;
+            document.getElementById('voice-btn').disabled = true;
         },
 
         toggleCurrentQuizStar() {
@@ -735,9 +743,18 @@
         handleStudyNavAction() {
             if (!this.studyStarted) {
                 this.startStudySession();
+            } else if (this.studyCompleted) {
+                this.restartStudySession();
             } else {
                 this.studyNext();
             }
+        },
+
+        // 學完一輪後點「🔄 重新開始」：沿用同一份清單，從第一張重新看起
+        restartStudySession() {
+            this.studyIndex = 0;
+            this.studyCompleted = false;
+            this.renderStudyCard();
         },
 
         // 按下「🚀 開始學習」才會真正建立單字清單並開始瀏覽，跟測驗模式的 startGame() 對稱
@@ -791,10 +808,12 @@
                 document.getElementById('study-hint-text').textContent = '';
                 document.getElementById('study-star').style.display = 'none';
                 document.getElementById('study-word').textContent = '🎉 恭喜學習完畢！';
+                document.getElementById('study-next-btn').textContent = '🔄 重新開始';
                 this.updateStudyButtonStates();
                 return;
             }
             document.getElementById('study-star').style.display = 'inline';
+            document.getElementById('study-next-btn').textContent = '下一個 ➡️';
             const data = this.studyList[this.studyIndex];
             const prefix = `📖 第 ${this.studyIndex + 1}/${this.studyList.length} 題`;
             document.getElementById('study-hint-text').textContent = `[${prefix}] ${data.hint}`;
@@ -819,7 +838,7 @@
             if (this.studyCompleted) {
                 prevBtn.disabled = false;  // 還是可以回去看最後一張
                 speakBtn.disabled = true;  // 完成畫面沒有單字可以唸
-                nextBtn.disabled = true;   // 已經是最後一張了
+                nextBtn.disabled = false;  // 這時候按下去是「重新開始」，要能按
                 return;
             }
             prevBtn.disabled = (this.studyIndex === 0); // 第一張時「上一個」沒有作用
@@ -872,15 +891,20 @@
         // ========== ⭐ 重點複習：答錯自動標記 + 隨時手動點掉，取消只有一種方式（點星星），簡單好懂 ==========
         getStarredWordsPool() {
             try {
-                return JSON.parse(localStorage.getItem('starredWords') || '[]');
+                const pool = JSON.parse(localStorage.getItem('starredWords') || '[]');
+                if (!Array.isArray(pool)) return [];
+                // 防呆：過濾掉格式異常的舊資料（例如早期測試留下、缺少 word 欄位的紀錄）
+                return pool.filter(w => w && typeof w.word === 'string' && w.word.trim() !== '');
             } catch {
                 return [];
             }
         },
         isStarred(wordStr) {
+            if (!wordStr) return false;
             return this.getStarredWordsPool().some(w => w.word.toLowerCase() === wordStr.toLowerCase());
         },
         saveStarredWord(wordData) {
+            if (!wordData || typeof wordData.word !== 'string' || wordData.word.trim() === '') return;
             let pool = this.getStarredWordsPool();
             if (!pool.some(w => w.word.toLowerCase() === wordData.word.toLowerCase())) {
                 pool.push(wordData);
@@ -897,6 +921,105 @@
         updateStarredCountUI() {
             const pool = this.getStarredWordsPool();
             document.getElementById('starred-toggle-btn').textContent = `⭐ 重點複習 (${pool.length})`;
+        },
+
+        // ========== 🎤 語音輸入：說一個字母的名字，效果跟點鍵盤一樣（G0~G3 都通用） ==========
+        initSpeechRecognition() {
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SR) {
+                this.voiceSupported = false;
+                document.getElementById('voice-btn').style.display = 'none';
+                return;
+            }
+            this.voiceSupported = true;
+            this.recognition = new SR();
+            this.recognition.lang = 'en-US';
+            this.recognition.continuous = false;
+            this.recognition.interimResults = false;
+            this.recognition.maxAlternatives = 3;
+        },
+
+        startVoiceInput() {
+            if (!this.voiceSupported || !this.isGameActive) return;
+            const btn = document.getElementById('voice-btn');
+            btn.disabled = true;
+            btn.classList.add('listening');
+            btn.textContent = '🎤 聽你說...';
+
+            this.recognition.onresult = (event) => {
+                const transcripts = [];
+                for (let i = 0; i < event.results[0].length; i++) {
+                    transcripts.push(event.results[0][i].transcript);
+                }
+                const letter = this.matchLetterFromSpeech(transcripts);
+                if (letter) {
+                    this.handleKeyClick(letter);
+                } else {
+                    document.getElementById('feedback').textContent = '😅 沒聽清楚，再說一次，或直接用鍵盤點選喔！';
+                    document.getElementById('feedback').style.color = '#FF9F43';
+                }
+            };
+            this.recognition.onerror = (event) => {
+                let msg = '😅 沒聽清楚，再說一次，或直接用鍵盤點選喔！';
+                if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+                    msg = '🎤 沒有麥克風權限，請到瀏覽器設定允許，或直接用鍵盤點選。';
+                } else if (event.error === 'no-speech') {
+                    msg = '😅 沒聽到聲音，再試一次，或直接用鍵盤點選喔！';
+                }
+                document.getElementById('feedback').textContent = msg;
+                document.getElementById('feedback').style.color = '#FF9F43';
+            };
+            this.recognition.onend = () => {
+                btn.disabled = !this.isGameActive;
+                btn.classList.remove('listening');
+                btn.textContent = '🎤 語音輸入';
+            };
+
+            try {
+                this.recognition.start();
+            } catch (e) {
+                btn.disabled = false;
+                btn.classList.remove('listening');
+                btn.textContent = '🎤 語音輸入';
+            }
+        },
+
+        // 英文字母唸法對照表：處理辨識引擎常見的拼音結果（如 "bee"→B、"see"→C）
+        matchLetterFromSpeech(transcripts) {
+            const letterMap = {
+                'a': 'A', 'ay': 'A', 'hey': 'A',
+                'b': 'B', 'be': 'B', 'bee': 'B',
+                'c': 'C', 'see': 'C', 'sea': 'C',
+                'd': 'D', 'de': 'D', 'dee': 'D',
+                'e': 'E', 'ee': 'E',
+                'f': 'F', 'ef': 'F', 'eff': 'F',
+                'g': 'G', 'gee': 'G', 'jee': 'G',
+                'h': 'H', 'aitch': 'H', 'age': 'H',
+                'i': 'I', 'eye': 'I',
+                'j': 'J', 'jay': 'J',
+                'k': 'K', 'kay': 'K', 'okay': 'K',
+                'l': 'L', 'el': 'L', 'ell': 'L',
+                'm': 'M', 'em': 'M',
+                'n': 'N', 'en': 'N',
+                'o': 'O', 'oh': 'O',
+                'p': 'P', 'pee': 'P',
+                'q': 'Q', 'cue': 'Q', 'queue': 'Q', 'kyu': 'Q',
+                'r': 'R', 'are': 'R', 'ar': 'R',
+                's': 'S', 'es': 'S', 'ess': 'S',
+                't': 'T', 'tee': 'T', 'tea': 'T',
+                'u': 'U', 'you': 'U', 'ewe': 'U',
+                'v': 'V', 'vee': 'V',
+                'w': 'W', 'double u': 'W', 'doubleyou': 'W', 'double you': 'W',
+                'x': 'X', 'ex': 'X', 'axe': 'X',
+                'y': 'Y', 'why': 'Y',
+                'z': 'Z', 'zee': 'Z', 'zed': 'Z'
+            };
+            for (const t of transcripts) {
+                const cleaned = t.toLowerCase().trim().replace(/[.,!?]/g, '');
+                if (letterMap[cleaned]) return letterMap[cleaned];
+                if (cleaned.length === 1 && /[a-z]/.test(cleaned)) return cleaned.toUpperCase();
+            }
+            return null;
         },
 
         // ========== 🎉 答對小驚喜：輕量級星星飄浮動畫，不需要額外操作 ==========
@@ -923,6 +1046,8 @@
                 speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
             }
         }
+
+        stateManager.initSpeechRecognition(); // 🎤 檢查瀏覽器是否支援語音輸入，不支援就自動隱藏按鈕
         
         try {
             const response = await fetch('https://raw.githubusercontent.com/liliancir0125/spell-game/refs/heads/main/word_bank.json');
